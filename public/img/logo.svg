@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 60" width="230" height="60" role="img" aria-label="Startech Mobile">
+  <defs>
+    <linearGradient id="lgStar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#c0c7d6"/><stop offset="1" stop-color="#7f8ba3"/>
+    </linearGradient>
+    <linearGradient id="lgSwoosh" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1e63ff" stop-opacity="0"/><stop offset=".6" stop-color="#1e63ff"/><stop offset="1" stop-color="#6aa0ff"/>
+    </linearGradient>
+  </defs>
+  <path d="M4 44 C18 54 40 50 54 30" fill="none" stroke="url(#lgSwoosh)" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M28 4 L33.6 19.2 L49.8 19.8 L37 29.8 L41.5 45.4 L28 36.2 L14.5 45.4 L19 29.8 L6.2 19.8 L22.4 19.2 Z" fill="url(#lgStar)"/>
+  <path d="M28 4 L33.6 19.2 L28 26 Z M49.8 19.8 L37 29.8 L28 26 Z" fill="#1e63ff" opacity=".55"/>
+  <circle cx="52" cy="8" r="1.8" fill="#fff"/><circle cx="57" cy="14" r="1.1" fill="#c0c7d6"/>
+  <text x="60" y="35" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="31" font-weight="800" font-style="italic" fill="#ffffff" letter-spacing="-.5">startech</text>
+  <text x="96" y="53" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#c0c7d6" letter-spacing="6">MOBILE</text>
+</svg>
