@@ -9,3 +9,14 @@ export const dbFile = process.env.DB_FILE || path.join(dataDir, 'store.db');
 export const uploadDir = path.join(dataDir, 'uploads');
 // Number of reverse proxies in front of the app (1 behind Nginx/Cloudflare); used to find the client IP.
 export const trustProxy = Number(process.env.TRUST_PROXY) || 0;
+
+/** SITE_URL as a URL. A bare domain gets https://; anything unusable gives null, so a typo can't take the site down. */
+export function siteUrl(raw = process.env.SITE_URL): URL | null {
+  const value = (raw || '').trim();
+  if (!value) return null;
+  try {
+    return new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+  } catch {
+    return null;
+  }
+}

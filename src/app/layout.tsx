@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { I18nProvider } from '@/components/i18n-provider';
 import { localizedSettings } from '@/lib/store';
 import { getLocale } from '@/lib/i18n/server';
+import { siteUrl } from '@/lib/config';
 import { INTL_TAG } from '@/lib/i18n/config';
 import { clientMessages } from '@/lib/i18n/messages';
 import './globals.css';
@@ -32,9 +33,9 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const site = localizedSettings(locale);
-  const base = process.env.SITE_URL;
+  const base = siteUrl();
   return {
-    ...(base ? { metadataBase: new URL(base) } : {}),
+    ...(base ? { metadataBase: base } : {}),
     title: { default: `${site.site_name} | ${site.tagline}`, template: `%s | ${site.site_name}` },
     description: site.meta_description,
     icons: { icon: '/img/favicon.svg' },

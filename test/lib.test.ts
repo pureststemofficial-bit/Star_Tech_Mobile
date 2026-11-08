@@ -26,6 +26,7 @@ const { messages, format } = await import('../src/lib/i18n/messages.ts');
 const { money } = await import('../src/lib/format.ts');
 const { isPostcode } = await import('../src/lib/validate.ts');
 const store = await import('../src/lib/store.ts');
+const { siteUrl } = await import('../src/lib/config.ts');
 console.log = silence;
 
 test('database is seeded with demo catalogue, pages and admin', () => {
@@ -137,4 +138,11 @@ test('form options keep the English value while showing a translated label', () 
   assert.deepEqual(first, { value: 'Mobile Phone', label: 'Telemóvel' });
   assert.equal(store.paymentLabel('nonsense', 'pt'), 'nonsense');
   assert.equal(store.localizedSettings('pt').repair_title, 'Marcar uma reparação');
+});
+
+test('a badly written SITE_URL can never crash the site', () => {
+  assert.equal(siteUrl('startechmobile.com')?.origin, 'https://startechmobile.com');
+  assert.equal(siteUrl(' https://startechmobile.com/ ')?.origin, 'https://startechmobile.com');
+  assert.equal(siteUrl('not a url at all'), null);
+  assert.equal(siteUrl(''), null);
 });
