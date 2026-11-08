@@ -4,7 +4,7 @@
   "description": "Startech Mobile electronics store with admin panel",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "create-admin": "node --disable-warning=ExperimentalWarning scripts/create-admin.ts",
     "generate-art": "node scripts/generate-art.cjs",
