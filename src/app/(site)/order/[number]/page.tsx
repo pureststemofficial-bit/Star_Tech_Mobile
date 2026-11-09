@@ -32,7 +32,7 @@ export default async function OrderConfirmation({ params }: { params: Promise<{ 
           <div className="text-center">
             <span className="mx-auto mb-3 grid size-16 place-items-center rounded-full bg-success-soft text-success"><Check className="size-8" /></span>
             <h1 className="font-display text-5xl">{t('confirm.title')}</h1>
-            <p className="mt-2 text-muted-foreground">{t('confirm.body', { email: order.email })}</p>
+            <p className="mt-2 text-muted-foreground">{t(order.payment_status === 'paid' ? 'confirm.bodyPaid' : 'confirm.body', { email: order.email })}</p>
           </div>
           <OrderDetail order={order} items={items} paymentLabel={paymentLabel(order.payment_method, locale)} />
           <div className="text-center"><Button asChild variant="ink"><Link href="/shop">{t('confirm.continue')}</Link></Button></div>

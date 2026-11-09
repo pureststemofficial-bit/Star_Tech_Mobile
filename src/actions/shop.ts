@@ -1,15 +1,18 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { refresh } from 'next/cache';
 import { get, run, tx } from '@/lib/db';
 import * as cart from '@/lib/cart';
-import { settings, invalidate } from '@/lib/store';
+import { CARD_METHOD, siteUrl } from '@/lib/config';
+import { createCheckoutSession, releaseOrder } from '@/lib/payments';
+import { localizedOptions, invalidate } from '@/lib/store';
 import { flash, readSession, updateSession } from '@/lib/session';
 import { currentUser } from '@/lib/auth';
 import { rateLimit } from '@/lib/ratelimit';
 import { str, int, isEmail, isPhone, isPostcode, checker, fields } from '@/lib/validate';
-import { lines, money, randomRef, safeRedirectPath } from '@/lib/helpers';
+import { money, randomRef, safeRedirectPath } from '@/lib/helpers';
 import { pick } from '@/lib/i18n/config';
 import { getI18n } from '@/lib/i18n/server';
 import type { FormState } from '@/lib/types';
@@ -60,7 +63,7 @@ export async function placeOrder(_prev: FormState, formData: FormData): Promise<
   const limited = await rateLimit('checkout');
   if (limited) return { errors: [limited] };
 
-  const methods = lines(settings().payment_methods);
+  const methods = localizedOptions('payment_methods', 'en').map((m) => m.value);
   const form = fields(formData, {
     email: 254, full_name: 100, phone: 20, line1: 120, line2: 120, city: 60, postcode: 10, notes: 500, payment_method: 120,
   });
@@ -105,11 +108,32 @@ export async function placeOrder(_prev: FormState, formData: FormData): Promise<
   }
 
   invalidate();
+  const payByCard = form.payment_method === CARD_METHOD;
   await updateSession((s) => {
-    cart.clear(s);
+    if (!payByCard) cart.clear(s); // card orders keep the basket until payment succeeds
     s.recentOrders = [...(s.recentOrders || []), orderNumber].slice(-5);
   });
-  redirect(`/order/${orderNumber}`);
+  if (!payByCard) redirect(`/order/${orderNumber}`);
+
+  let paymentUrl: string;
+  try {
+    paymentUrl = await createCheckoutSession({
+      orderNumber, email: form.email, cart: summary, locale, deliveryLabel: t('order.delivery'), origin: await requestOrigin(),
+    });
+  } catch (err) {
+    console.error('Stripe checkout failed:', err instanceof Error ? err.message : err);
+    releaseOrder(orderNumber);
+    return { errors: [t('checkout.cardError')] };
+  }
+  redirect(paymentUrl);
+}
+
+/** The site's public address: SITE_URL in production, otherwise whatever this request came in on. */
+async function requestOrigin() {
+  const configured = siteUrl();
+  if (configured) return configured.origin;
+  const h = await headers();
+  return `${h.get('x-forwarded-proto') ?? 'http'}://${h.get('host')}`;
 }
 
 class StockError extends Error {}

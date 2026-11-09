@@ -106,7 +106,9 @@ The rate limiter and SQLite database are designed for a single server, which sui
 
 ## Online card payments
 
-The original storyboard showed PayPal / Google Pay / Apple Pay. Taking real card payments needs your own merchant account (e.g. Stripe or PayPal) and API keys, so checkout currently offers the payment options configured in **Settings** (bank transfer, pay on collection, and so on). Orders arrive as *Unpaid*, and you mark them *Paid* in the admin. A Stripe Checkout step can be added once you have an account.
+With `STRIPE_SECRET_KEY` set in `.env`, checkout offers **Card** alongside the options configured in **Settings**. Card details are entered on Stripe's hosted page. The order takes its stock when placed, becomes *Paid* when Stripe confirms payment, and is cancelled with its stock returned if the customer backs out or the 30-minute payment window ends. Other payment options still arrive as *Unpaid* for you to mark *Paid* in the admin.
+
+**Before going live**, set `SITE_URL`, then in the Stripe dashboard add a webhook endpoint for `https://your-domain/api/stripe/webhook` with the events `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded` and `checkout.session.async_payment_failed`. Put its signing secret in `STRIPE_WEBHOOK_SECRET`. Without the webhook, a customer who pays but closes the tab before returning stays *Unpaid*, and abandoned payments keep their stock reserved.
 
 ## shadcn/ui
 

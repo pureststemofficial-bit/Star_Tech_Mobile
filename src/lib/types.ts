@@ -94,6 +94,7 @@ export interface Order {
   total_pence: number;
   payment_method: string;
   payment_status: PaymentStatus;
+  stripe_session_id: string;
   status: OrderStatus;
   tracking_number: string;
   created_at: string;

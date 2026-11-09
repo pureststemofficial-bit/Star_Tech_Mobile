@@ -16,6 +16,7 @@ import { readSession } from '@/lib/session';
 import { currentUser } from '@/lib/auth';
 import { summary } from '@/lib/cart';
 import { localizedOptions } from '@/lib/store';
+import { stripeEnabled } from '@/lib/config';
 import { get } from '@/lib/db';
 import { getI18n, titled } from '@/lib/i18n/server';
 import { pick } from '@/lib/i18n/config';
@@ -74,7 +75,7 @@ export default async function CheckoutPage() {
                 </Label>
               ))}
             </RadioGroup>
-            <p className="text-sm text-muted-foreground">{t('checkout.paymentNote')}</p>
+            <p className="text-sm text-muted-foreground">{t(stripeEnabled() ? 'checkout.paymentNoteCard' : 'checkout.paymentNote')}</p>
           </section>
         </div>
 

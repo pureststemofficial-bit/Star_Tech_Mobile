@@ -20,7 +20,7 @@ export function proxy(request: NextRequest) {
     'frame-src https://www.google.com https://maps.google.com',
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    "form-action 'self' https://checkout.stripe.com", // browsers apply this to the redirect after a form post
     "frame-ancestors 'none'",
     ...(isDev ? [] : ['upgrade-insecure-requests']),
   ].join('; ');

@@ -1,4 +1,5 @@
 import { all, run, tx } from './db.ts';
+import { CARD_METHOD, stripeEnabled } from './config.ts';
 import { lines } from './helpers.ts';
 import type { Locale } from './i18n/config.ts';
 import type { Category } from './types.ts';
@@ -122,7 +123,11 @@ export function localizedOptions(key: 'repair_device_types' | 'repair_types' | '
   const values = lines(s[key]);
   const translated = lines(s[`${key}_pt`]);
   const usable = locale !== 'en' && translated.length === values.length;
-  return values.map((value, i) => ({ value, label: usable ? translated[i] : value }));
+  const options = values.map((value, i) => ({ value, label: usable ? translated[i] : value }));
+  if (key === 'payment_methods' && stripeEnabled()) {
+    options.unshift({ value: CARD_METHOD, label: locale === 'pt' ? 'Cartão (pagamento seguro via Stripe)' : CARD_METHOD });
+  }
+  return options;
 }
 
 /** The stored (English) payment method in the visitor's language, for showing on an order. */

@@ -146,3 +146,30 @@ test('a badly written SITE_URL can never crash the site', () => {
   assert.equal(siteUrl('not a url at all'), null);
   assert.equal(siteUrl(''), null);
 });
+
+test('a Stripe session settles an order once, whichever notice arrives first', async () => {
+  const { settleSession } = await import('../src/lib/payments.ts');
+  const { id: productId, stock } = get<{ id: number; stock: number }>('SELECT id, stock FROM products LIMIT 1')!;
+  const place = (number: string, session: string) => {
+    run('UPDATE products SET stock = stock - 1 WHERE id = ?', productId);
+    const o = run(`INSERT INTO orders (order_number, email, full_name, line1, city, postcode, subtotal_pence, delivery_pence, total_pence, stripe_session_id)
+                   VALUES (?, 'a@b.co', 'A B', '1 St', 'London', 'E1 6AN', 100, 0, 100, ?)`, number, session);
+    run(`INSERT INTO order_items (order_id, product_id, name, price_pence, qty) VALUES (?, ?, 'x', 100, 1)`, o.lastInsertRowid, productId);
+  };
+  const order = (number: string) => get<{ status: string; payment_status: string }>('SELECT status, payment_status FROM orders WHERE order_number = ?', number)!;
+  const stockNow = () => get<{ stock: number }>('SELECT stock FROM products WHERE id = ?', productId)!.stock;
+
+  assert.equal(settleSession({ id: 'cs_unknown', status: 'complete', payment_status: 'paid' }), null);
+
+  place('T-PAID', 'cs_paid');
+  assert.equal(settleSession({ id: 'cs_paid', status: 'open', payment_status: 'unpaid' })?.state, 'open');
+  assert.equal(order('T-PAID').payment_status, 'unpaid');
+  for (let i = 0; i < 2; i++) assert.equal(settleSession({ id: 'cs_paid', status: 'complete', payment_status: 'paid' })?.state, 'paid');
+  assert.equal(order('T-PAID').payment_status, 'paid');
+  assert.equal(stockNow(), stock - 1);
+
+  place('T-GONE', 'cs_gone');
+  for (let i = 0; i < 2; i++) assert.equal(settleSession({ id: 'cs_gone', status: 'expired', payment_status: 'unpaid' })?.state, 'cancelled');
+  assert.equal(order('T-GONE').status, 'cancelled');
+  assert.equal(stockNow(), stock - 1, 'stock returned exactly once');
+});
