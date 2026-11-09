@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Eye, FileText, Layers, LayoutGrid, Lock, LogOut, Menu, MessageSquare, Package, Settings, Star, Tag, Users, Wrench } from 'lucide-react';
+import { Eye, FileText, Layers, LayoutGrid, Lock, LogOut, Menu, MessageSquare, Newspaper, Package, Settings, Star, Tag, Users, Wrench } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { adminLogout } from '@/actions/admin';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ const NAV = [
   { href: '/admin/messages', label: 'Messages', Icon: MessageSquare, badge: 'messages' },
   { href: '/admin/reviews', label: 'Reviews', Icon: Star, badge: 'reviews' },
   { href: '/admin/customers', label: 'Customers', Icon: Users },
+  { href: '/admin/blog', label: 'Blog', Icon: Newspaper },
   { href: '/admin/pages', label: 'Pages', Icon: FileText },
   { href: '/admin/settings', label: 'Settings', Icon: Settings },
 ] as const;

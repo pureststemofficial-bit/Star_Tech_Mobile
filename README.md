@@ -69,6 +69,7 @@ data/                SQLite database + uploaded images (created at runtime; back
 | Messages | Contact-form messages, reply by email |
 | Reviews | Customer reviews stay hidden until approved |
 | Customers | List, spend, disable/enable accounts |
+| Blog | Write, hide and delete articles in English and Portuguese, with a cover image, publication date and an optional button linking to a shop or repair page |
 | Pages | About, Why Choose Us, Terms, Privacy, Returns, Delivery, FAQs |
 | Settings | Store name, home banner text/button/image, feature strip, banners, repair options, contact details, map, social links, delivery charges, checkout payment options |
 

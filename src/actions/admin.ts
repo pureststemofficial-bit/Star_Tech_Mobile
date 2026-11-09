@@ -9,9 +9,9 @@ import { verifyPassword } from '@/lib/password';
 import { startUserSession, endSession, flash, revokeUserSessions } from '@/lib/session';
 import { rateLimit } from '@/lib/ratelimit';
 import { saveImage, removeUpload, filesFrom, ImageError } from '@/lib/images';
-import { str, int, bool, isEmail, oneOf, checker } from '@/lib/validate';
+import { str, int, bool, isEmail, isDate, oneOf, checker, fields } from '@/lib/validate';
 import { toPence, slugify, safeRedirectPath } from '@/lib/helpers';
-import type { FormState, Order, ProductImage, Category } from '@/lib/types';
+import type { BlogPost, FormState, Order, ProductImage, Category } from '@/lib/types';
 
 /*
  * Every action here starts with requireAdmin(): Server Actions are public HTTP endpoints, so the
@@ -295,6 +295,72 @@ export async function savePage(_prev: FormState, formData: FormData): Promise<Fo
     str(formData.get('title_pt'), 120), str(formData.get('subtitle_pt'), 300), str(formData.get('body_pt'), 50000), slug);
   refresh();
   return { ok: true, message: 'Page saved.', at: Date.now() };
+}
+
+/* ---------- Blog ---------- */
+
+export async function saveBlogPost(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = int(formData.get('id'), { min: 0, fallback: 0 });
+  const existing = id ? get<BlogPost>('SELECT * FROM blog_posts WHERE id = ?', id) : undefined;
+  if (id && !existing) return { errors: ['Article not found.'] };
+
+  const form = fields(formData, {
+    title: 160, title_pt: 160, excerpt: 300, excerpt_pt: 300, category: 40, category_pt: 40,
+    body: 50000, body_pt: 50000, cta_href: 300, cta_label: 60, cta_label_pt: 60,
+  });
+  const slug = slugify(str(formData.get('slug'), 100) || form.title);
+  const published = str(formData.get('published'), 10);
+  const [file] = filesFrom(formData, 'image');
+  const v = checker()
+    .require(form.title.length >= 2, 'Title is required.')
+    .require(form.category, 'Category is required.')
+    .require(form.excerpt, 'Summary is required.')
+    .require(form.body, 'Article text is required.')
+    .require(isDate(published), 'Enter a valid publication date.')
+    .require(file || existing, 'Please add a cover image.')
+    .require(safeLink(form.cta_href), 'Button link must be a page path like /repairs or an https:// URL.')
+    .require(!form.cta_href === !form.cta_label, 'Fill in both the button text and its link, or leave both blank.');
+  if (get('SELECT 1 AS x FROM blog_posts WHERE slug = ? AND id != ?', slug, id)) v.errors.push('That URL slug is already used by another article.');
+  if (!v.ok) return { errors: v.errors };
+
+  // Saved last, so a rejected form never leaves an unused file behind.
+  let saved: { path: string; thumb: string } | undefined;
+  if (file) {
+    try {
+      saved = await saveImage(file, { width: 1600, thumbWidth: 800 });
+    } catch (err) {
+      if (err instanceof ImageError) return { errors: [err.message] };
+      throw err;
+    }
+  }
+  const values = [slug, published, saved?.path ?? existing!.image, saved?.thumb ?? existing!.thumb, form.category, form.category_pt, form.title, form.title_pt,
+    form.excerpt, form.excerpt_pt, form.body, form.body_pt, form.cta_href, form.cta_label, form.cta_label_pt, bool(formData.get('is_active'))] as const;
+
+  let postId = id;
+  if (existing) {
+    run(`UPDATE blog_posts SET slug = ?, published = ?, image = ?, thumb = ?, category = ?, category_pt = ?, title = ?, title_pt = ?,
+           excerpt = ?, excerpt_pt = ?, body = ?, body_pt = ?, cta_href = ?, cta_label = ?, cta_label_pt = ?, is_active = ?,
+           updated_at = datetime('now') WHERE id = ?`, ...values, id);
+    if (saved) { removeUpload(existing.image); removeUpload(existing.thumb); }
+  } else {
+    postId = run(`INSERT INTO blog_posts (slug, published, image, thumb, category, category_pt, title, title_pt, excerpt, excerpt_pt, body, body_pt, cta_href, cta_label, cta_label_pt, is_active)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, ...values).lastInsertRowid;
+  }
+  await flash('success', existing ? 'Article updated.' : 'Article created.');
+  redirect(`/admin/blog/${postId}`);
+}
+
+export async function deleteBlogPost(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const post = get<BlogPost>('SELECT * FROM blog_posts WHERE id = ?', int(formData.get('id')));
+  if (post) {
+    run('DELETE FROM blog_posts WHERE id = ?', post.id);
+    removeUpload(post.image);
+    removeUpload(post.thumb);
+    await flash('success', 'Article deleted.');
+  }
+  redirect('/admin/blog');
 }
 
 const URL_KEYS = ['social_facebook', 'social_instagram', 'social_tiktok', 'social_youtube'] as const;

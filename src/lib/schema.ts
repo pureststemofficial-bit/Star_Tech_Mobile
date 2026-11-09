@@ -174,6 +174,29 @@ CREATE TABLE IF NOT EXISTS pages (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug         TEXT NOT NULL UNIQUE,
+  published    TEXT NOT NULL,
+  image        TEXT NOT NULL,
+  thumb        TEXT NOT NULL,
+  category     TEXT NOT NULL,
+  category_pt  TEXT NOT NULL DEFAULT '',
+  title        TEXT NOT NULL,
+  title_pt     TEXT NOT NULL DEFAULT '',
+  excerpt      TEXT NOT NULL,
+  excerpt_pt   TEXT NOT NULL DEFAULT '',
+  body         TEXT NOT NULL,
+  body_pt      TEXT NOT NULL DEFAULT '',
+  cta_href     TEXT NOT NULL DEFAULT '',
+  cta_label    TEXT NOT NULL DEFAULT '',
+  cta_label_pt TEXT NOT NULL DEFAULT '',
+  is_active    INTEGER NOT NULL DEFAULT 1,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_blog_listing ON blog_posts(is_active, published);
+
 CREATE TABLE IF NOT EXISTS settings (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL

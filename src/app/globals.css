@@ -131,6 +131,7 @@
   .prose-content.checklist ul { @apply list-none pl-0; }
   .prose-content.checklist li { @apply relative pl-7; }
   .prose-content.checklist li::before { content: "✓"; @apply absolute left-0 font-bold text-primary; }
+  .prose-content.article h2 { @apply mt-10 mb-3 text-[2rem] leading-[1.15] font-normal; font-family: var(--font-display); letter-spacing: -0.015em; }
   [data-slot="card"] { min-width: 0; }
   .scrollbar-none { scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }

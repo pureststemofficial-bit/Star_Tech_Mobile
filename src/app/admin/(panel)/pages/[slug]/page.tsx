@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ActionForm, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
+import { FormattingHelp } from '@/components/admin/formatting-help';
 import { PageHeader } from '@/components/admin/page-header';
 import { savePage } from '@/actions/admin';
 import { requireAdmin } from '@/lib/auth';
@@ -37,19 +38,7 @@ export default async function PageEditor({ params }: { params: Promise<{ slug: s
             </ActionForm>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-base">Formatting help</CardTitle></CardHeader>
-          <CardContent className="grid gap-3 text-sm">
-            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
-              <dt><code>## Heading</code></dt><dd>Section heading</dd>
-              <dt><code>### Smaller</code></dt><dd>Sub-heading</dd>
-              <dt><code>- item</code></dt><dd>Bullet list</dd>
-              <dt><code>**bold**</code></dt><dd><strong>bold</strong></dd>
-              <dt>Blank line</dt><dd>New paragraph</dd>
-            </dl>
-            <p className="text-muted-foreground">HTML is not allowed and is shown as plain text. This keeps the site safe.</p>
-          </CardContent>
-        </Card>
+        <FormattingHelp />
       </div>
     </>
   );

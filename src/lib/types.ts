@@ -178,6 +178,29 @@ export interface Page {
   updated_at: string;
 }
 
+export interface BlogPost {
+  id: number;
+  slug: string;
+  /** YYYY-MM-DD, shown on the article and used to order the blog. */
+  published: string;
+  image: string;
+  thumb: string;
+  category: string;
+  category_pt: string;
+  title: string;
+  title_pt: string;
+  excerpt: string;
+  excerpt_pt: string;
+  body: string;
+  body_pt: string;
+  cta_href: string;
+  cta_label: string;
+  cta_label_pt: string;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CartEntry {
   productId: number;
   colour: string;

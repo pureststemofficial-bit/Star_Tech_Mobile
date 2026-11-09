@@ -18,6 +18,7 @@ export async function Footer() {
     { href: '/shop', label: t('nav.shop') },
     ...categories().filter((c) => c.show_in_nav).map((c) => ({ href: `/shop?category=${c.slug}`, label: pick(c, 'nav_label', locale) || pick(c, 'name', locale) })),
     { href: '/repairs', label: t('nav.repairs') },
+    { href: '/blog', label: t('nav.blog') },
     { href: '/about', label: t('foot.about') },
     { href: '/contact', label: t('foot.contactUs') },
   ];
