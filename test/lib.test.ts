@@ -177,11 +177,22 @@ test('a Stripe session settles an order once, whichever notice arrives first', a
 
 test('the switch to euros converts every kind of amount exactly once', () => {
   const version = () => Number(get<{ user_version: number }>('PRAGMA user_version')!.user_version);
-  assert.equal(version(), 1);
+  assert.equal(version(), 2);
   assert.equal(get<{ price_pence: number }>("SELECT price_pence FROM products WHERE slug = 'iphone-15-pro'")!.price_pence, Math.round(69900 * EUR_PER_GBP));
   assert.equal(euroOptions('128GB\n256GB|+100\n1TB|+£500'), '128GB\n256GB|+119.86\n1TB|+599.30');
   assert.equal(euroText('Free over £50, or £1,000.50'), 'Free over €59.93, or €1199.20');
   assert.equal(euroText('Acima de 50 £'), 'Acima de 59,93 €');
   assert.equal(euroText('Prices in pounds sterling (GBP)'), 'Prices in euros (EUR)');
   assert.equal(euroText('Already €59.93'), 'Already €59.93');
+});
+
+test('real shop details replace the demo ones but never an admin edit', async () => {
+  const { applyShopDetails, SHOP_DETAILS } = await import('../src/lib/shop-details.ts');
+  assert.equal(store.settings().email, SHOP_DETAILS.email);
+  const value = (key: string) => get<{ value: string }>('SELECT value FROM settings WHERE key = ?', key)!.value;
+  run(`INSERT INTO settings (key, value) VALUES ('phone', '+44 20 7123 4567'), ('email', 'owner@shop.example')`);
+  applyShopDetails({ run });
+  assert.equal(value('phone'), SHOP_DETAILS.phone);
+  assert.equal(value('email'), 'owner@shop.example');
+  run(`DELETE FROM settings WHERE key IN ('phone', 'email')`);
 });

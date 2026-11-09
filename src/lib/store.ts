@@ -1,6 +1,7 @@
 import { all, run, tx } from './db.ts';
 import { CARD_METHOD, stripeEnabled } from './config.ts';
 import { lines } from './helpers.ts';
+import { SHOP_DETAILS } from './shop-details.ts';
 import type { Locale } from './i18n/config.ts';
 import type { Category } from './types.ts';
 
@@ -24,11 +25,8 @@ const BASE = {
   repair_types: 'Screen Replacement\nBattery Replacement\nCharging Port Repair\nSoftware / Diagnostics\nWater Damage\nOther',
   repair_times: '09:00 - 11:00\n11:00 - 13:00\n13:00 - 15:00\n15:00 - 17:00\n17:00 - 19:00',
   features: 'Free UK Delivery|On orders over €59.93\nSecure Checkout|Encrypted end to end\n14-Day Returns|Hassle free\nExpert Support|Here to help',
-  phone: '+44 20 7123 4567',
-  email: 'info@startechmobile.co.uk',
-  address: '123 High Street\nLondon, E1 6AN\nUnited Kingdom',
+  ...SHOP_DETAILS,
   hours: 'Mon - Sat: 9:00 AM - 7:00 PM\nSun: 10:00 AM - 5:00 PM',
-  map_query: '123 High Street, London E1 6AN',
   // Blank hides the icon: add your real profile links in Admin -> Settings.
   social_facebook: '',
   social_instagram: '',

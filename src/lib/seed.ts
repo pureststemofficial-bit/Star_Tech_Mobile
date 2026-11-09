@@ -136,7 +136,7 @@ Free on orders over €59.93. Otherwise a small delivery charge applies, shown a
 Orders placed before 2pm Monday to Friday are usually dispatched the same day and delivered within 1-3 working days.
 
 ## Click & collect
-You can also collect your order from our London store.`],
+You can also collect your order from our Povoa de Santa Iria store.`],
   faqs: ['FAQs', 'Frequently asked questions', `## Are your products genuine?
 Yes. Every product we sell is brand new and genuine, unless clearly stated otherwise.
 

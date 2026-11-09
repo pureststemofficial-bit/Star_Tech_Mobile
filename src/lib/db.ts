@@ -5,6 +5,7 @@ import { dbFile } from './config.ts';
 import { ADDED_COLUMNS, SCHEMA } from './schema.ts';
 import { seed } from './seed.ts';
 import { convertToEuro } from './euro.ts';
+import { applyShopDetails } from './shop-details.ts';
 
 /*
  * One SQLite connection per process, opened lazily on the first query (so `next build` never
@@ -40,9 +41,10 @@ function state(): DbState {
   // Checked inside the write lock so two processes starting together can't both convert.
   tx(() => {
     const { user_version } = conn.prepare('PRAGMA user_version').get() as { user_version: number };
-    if (user_version >= 1) return;
-    convertToEuro({ all, run });
-    conn.exec('PRAGMA user_version = 1');
+    if (user_version >= 2) return;
+    if (user_version < 1) convertToEuro({ all, run });
+    applyShopDetails({ run });
+    conn.exec('PRAGMA user_version = 2');
   });
   return g.__startechDb;
 }

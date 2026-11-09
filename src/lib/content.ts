@@ -131,7 +131,7 @@ Grátis em encomendas acima de 59,93 €. Caso contrário, aplica-se uma pequena
 As encomendas feitas antes das 14h, de segunda a sexta-feira, são normalmente expedidas no próprio dia e entregues em 1 a 3 dias úteis.
 
 ## Levantamento em loja
-Também pode levantar a sua encomenda na nossa loja de Londres.`],
+Também pode levantar a sua encomenda na nossa loja da Povoa de Santa Iria.`],
   faqs: ['Perguntas Frequentes', 'As dúvidas mais comuns', `## Os vossos produtos são genuínos?
 Sim. Todos os produtos que vendemos são novos e genuínos, salvo indicação clara em contrário.
 
