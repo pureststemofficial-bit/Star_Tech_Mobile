@@ -62,8 +62,8 @@ export default async function SettingsAdmin() {
           </>)}
           {section('Delivery & payment', <>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Free delivery over (£)" htmlFor="free_delivery" hint="0 = never free"><Input id="free_delivery" name="free_delivery" inputMode="decimal" defaultValue={fromPence(Number(s.free_delivery_pence))} /></Field>
-              <Field label="Delivery charge (£)" htmlFor="delivery_fee"><Input id="delivery_fee" name="delivery_fee" inputMode="decimal" defaultValue={fromPence(Number(s.delivery_fee_pence))} /></Field>
+              <Field label="Free delivery over (€)" htmlFor="free_delivery" hint="0 = never free"><Input id="free_delivery" name="free_delivery" inputMode="decimal" defaultValue={fromPence(Number(s.free_delivery_pence))} /></Field>
+              <Field label="Delivery charge (€)" htmlFor="delivery_fee"><Input id="delivery_fee" name="delivery_fee" inputMode="decimal" defaultValue={fromPence(Number(s.delivery_fee_pence))} /></Field>
             </div>
             {area('payment_methods', 'Payment options at checkout', 'One per line.', 4)}
           </>)}

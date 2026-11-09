@@ -8,11 +8,11 @@ export const CARD_COLUMNS = `
   (SELECT COUNT(*) FROM reviews r WHERE r.product_id = p.id AND r.is_approved = 1) AS review_count`;
 
 export const PRICE_RANGES = [
-  { id: '0-50', label: '£0 - £50', min: 0, max: 5000 },
-  { id: '50-100', label: '£50 - £100', min: 5000, max: 10000 },
-  { id: '100-200', label: '£100 - £200', min: 10000, max: 20000 },
-  { id: '200-500', label: '£200 - £500', min: 20000, max: 50000 },
-  { id: '500+', label: '£500+', min: 50000, max: null },
+  { id: '0-50', label: '€0 - €50', min: 0, max: 5000 },
+  { id: '50-100', label: '€50 - €100', min: 5000, max: 10000 },
+  { id: '100-200', label: '€100 - €200', min: 10000, max: 20000 },
+  { id: '200-500', label: '€200 - €500', min: 20000, max: 50000 },
+  { id: '500+', label: '€500+', min: 50000, max: null },
 ] as const;
 
 export const SORTS = {

@@ -2,14 +2,14 @@
 import { INTL_TAG, type Locale } from './i18n/config.ts';
 
 const currency: Record<Locale, Intl.NumberFormat> = {
-  en: new Intl.NumberFormat(INTL_TAG.en, { style: 'currency', currency: 'GBP' }),
-  pt: new Intl.NumberFormat(INTL_TAG.pt, { style: 'currency', currency: 'GBP' }),
+  en: new Intl.NumberFormat(INTL_TAG.en, { style: 'currency', currency: 'EUR' }),
+  pt: new Intl.NumberFormat(INTL_TAG.pt, { style: 'currency', currency: 'EUR' }),
 };
 export const money = (pence: number | null | undefined, locale: Locale = 'en') => currency[locale].format((Number(pence) || 0) / 100);
 
-/** "12.5" / "£1,299.99" -> pence integer, or null when not a valid amount. */
+/** "12.5" / "€1,299.99" -> pence integer, or null when not a valid amount. */
 export function toPence(value: unknown): number | null {
-  const s = String(value ?? '').replace(/[£,\s]/g, '');
+  const s = String(value ?? '').replace(/[€,\s]/g, '');
   if (!/^\d{1,7}(\.\d{1,2})?$/.test(s)) return null;
   return Math.round(Number(s) * 100);
 }

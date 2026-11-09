@@ -53,7 +53,7 @@ export function ProductForm({ product, images, cats }: { product?: Product; imag
                 <Field label="Colours" htmlFor="colours" hint='One per line as "Name|#hex".'>
                   <Textarea id="colours" name="colours" defaultValue={p?.colours} rows={4} maxLength={2000} placeholder={'Black|#1b1d22\nBlue|#1e63ff'} />
                 </Field>
-                <Field label="Options / storage" htmlFor="options" hint='One per line as "Name|+extra £".'>
+                <Field label="Options / storage" htmlFor="options" hint='One per line as "Name|+extra €".'>
                   <Textarea id="options" name="options" defaultValue={p?.options} rows={4} maxLength={2000} placeholder={'128GB\n256GB|+100'} />
                 </Field>
               </div>
@@ -95,8 +95,8 @@ export function ProductForm({ product, images, cats }: { product?: Product; imag
           <Card>
             <CardHeader><CardTitle className="text-base">Pricing &amp; stock</CardTitle></CardHeader>
             <CardContent className="grid gap-4">
-              <Field label="Price (£)" htmlFor="price"><Input id="price" name="price" inputMode="decimal" defaultValue={p ? fromPence(p.price_pence) : ''} required placeholder="699.00" /></Field>
-              <Field label="Was price (£)" htmlFor="compare" optional hint="Shows a sale badge when higher than the price.">
+              <Field label="Price (€)" htmlFor="price"><Input id="price" name="price" inputMode="decimal" defaultValue={p ? fromPence(p.price_pence) : ''} required placeholder="699.00" /></Field>
+              <Field label="Was price (€)" htmlFor="compare" optional hint="Shows a sale badge when higher than the price.">
                 <Input id="compare" name="compare" inputMode="decimal" defaultValue={p?.compare_pence ? fromPence(p.compare_pence) : ''} />
               </Field>
               <Field label="Stock quantity" htmlFor="stock"><Input id="stock" name="stock" type="number" min={0} defaultValue={p?.stock ?? 10} required /></Field>

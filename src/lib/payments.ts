@@ -35,7 +35,7 @@ export async function createCheckoutSession(input: CheckoutInput): Promise<strin
   const { orderNumber, email, cart, locale, deliveryLabel, origin } = input;
   const line = (name: string, pence: number, quantity: number): Stripe.Checkout.SessionCreateParams.LineItem => ({
     quantity,
-    price_data: { currency: 'gbp', unit_amount: pence, product_data: { name } },
+    price_data: { currency: 'eur', unit_amount: pence, product_data: { name } },
   });
   const session = await stripe().checkout.sessions.create({
     mode: 'payment',

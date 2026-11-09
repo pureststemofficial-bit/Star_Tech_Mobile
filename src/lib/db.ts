@@ -4,6 +4,7 @@ import { DatabaseSync, type SQLInputValue, type StatementSync } from 'node:sqlit
 import { dbFile } from './config.ts';
 import { ADDED_COLUMNS, SCHEMA } from './schema.ts';
 import { seed } from './seed.ts';
+import { convertToEuro } from './euro.ts';
 
 /*
  * One SQLite connection per process, opened lazily on the first query (so `next build` never
@@ -36,6 +37,13 @@ function state(): DbState {
   g.__startechDb = { conn, cache: new Map() };
   // First connection in this process: make sure demo data, pages and an admin account exist.
   seed({ get, all, run, tx }, { createAdmin: !isBuild });
+  // Checked inside the write lock so two processes starting together can't both convert.
+  tx(() => {
+    const { user_version } = conn.prepare('PRAGMA user_version').get() as { user_version: number };
+    if (user_version >= 1) return;
+    convertToEuro({ all, run });
+    conn.exec('PRAGMA user_version = 1');
+  });
   return g.__startechDb;
 }
 

@@ -51,7 +51,7 @@ export default async function RepairAdmin({ params }: { params: Promise<{ id: st
                     {['new', 'confirmed', 'in_progress', 'completed', 'cancelled'].map((s) => <option key={s} value={s}>{label(s)}</option>)}
                   </NativeSelect>
                 </Field>
-                <Field label="Quote (£)" htmlFor="quote" hint="Shown to the customer in their account.">
+                <Field label="Quote (€)" htmlFor="quote" hint="Shown to the customer in their account.">
                   <Input id="quote" name="quote" inputMode="decimal" defaultValue={r.quote_pence ? fromPence(r.quote_pence) : ''} />
                 </Field>
                 <Field label="Internal notes" htmlFor="admin_notes"><Textarea id="admin_notes" name="admin_notes" rows={5} maxLength={3000} defaultValue={r.admin_notes} /></Field>

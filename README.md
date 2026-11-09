@@ -40,7 +40,7 @@ The storefront is available in **English** and **European Portuguese**. First-ti
 
 - Interface text: `src/lib/i18n/messages.ts`
 - Shop content: each product, category, page and setting has Portuguese fields in the admin panel (**Portuguese version**). A blank field falls back to English.
-- Prices stay in pounds sterling in both languages.
+- Prices are in euros in both languages.
 
 ## Project structure
 

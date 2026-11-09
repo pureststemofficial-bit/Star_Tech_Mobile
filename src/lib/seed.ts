@@ -3,7 +3,10 @@ import { hashPasswordSync } from './password.ts';
 import { applyContent } from './content.ts';
 import type { Db } from './db.ts';
 
-/* Demo catalogue, information pages and the first admin account. Artwork is in public/img (npm run generate-art). */
+/*
+ * Demo catalogue, information pages and the first admin account. Artwork is in public/img (npm run generate-art).
+ * Catalogue prices and option extras are in pounds; euro.ts converts them right after seeding.
+ */
 
 const CATEGORIES = [
   { slug: 'mobile-phones', name: 'Mobile Phones', nav: 'Phones', inNav: 1, home: 1, art: ['phone', { color: '#2b3a67', accent: '#1d2747' }] },
@@ -86,7 +89,7 @@ Our certified technicians repair phones, tablets, laptops and consoles every day
 These terms apply to all purchases and repair bookings made with Startech Mobile. By placing an order you agree to these terms.
 
 ## 2. Orders and Payment
-All prices are shown in pounds sterling (GBP) and include VAT. An order is accepted when we confirm it by email. We reserve the right to cancel orders where stock is unavailable or pricing errors have occurred.
+All prices are shown in euros (EUR) and include VAT. An order is accepted when we confirm it by email. We reserve the right to cancel orders where stock is unavailable or pricing errors have occurred.
 
 ## 3. Delivery
 We deliver across the UK. Estimated delivery times are shown at checkout and are not guaranteed.
@@ -127,7 +130,7 @@ Refunds are issued to your original payment method within 5 working days of us r
 ## Faulty items
 If your item is faulty, contact us and we will repair, replace or refund it in line with your statutory rights.`],
   delivery: ['Delivery Information', 'Fast UK delivery', `## Standard delivery
-Free on orders over £50. Otherwise a small delivery charge applies, shown at checkout.
+Free on orders over €59.93. Otherwise a small delivery charge applies, shown at checkout.
 
 ## Delivery times
 Orders placed before 2pm Monday to Friday are usually dispatched the same day and delivered within 1-3 working days.

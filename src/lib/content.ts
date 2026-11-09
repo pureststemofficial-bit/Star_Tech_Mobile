@@ -84,7 +84,7 @@ Os nossos técnicos reparam todos os dias telemóveis, tablets, portáteis e con
 Estes termos aplicam-se a todas as compras e marcações de reparação efetuadas na Startech Mobile. Ao fazer uma encomenda, aceita estes termos.
 
 ## 2. Encomendas e pagamento
-Todos os preços são apresentados em libras esterlinas (GBP) e incluem IVA. Uma encomenda é aceite quando a confirmamos por email. Reservamo-nos o direito de cancelar encomendas em caso de falta de stock ou de erros de preço.
+Todos os preços são apresentados em euros (EUR) e incluem IVA. Uma encomenda é aceite quando a confirmamos por email. Reservamo-nos o direito de cancelar encomendas em caso de falta de stock ou de erros de preço.
 
 ## 3. Entrega
 Entregamos em todo o Reino Unido. Os prazos de entrega estimados são apresentados na finalização da compra e não são garantidos.
@@ -125,7 +125,7 @@ Os reembolsos são efetuados no método de pagamento original no prazo de 5 dias
 ## Artigos com defeito
 Se o seu artigo tiver defeito, contacte-nos e procederemos à reparação, substituição ou reembolso, de acordo com os seus direitos legais.`],
   delivery: ['Informações de Entrega', 'Entrega rápida no Reino Unido', `## Entrega normal
-Grátis em encomendas acima de 50 £. Caso contrário, aplica-se uma pequena taxa de entrega, indicada na finalização da compra.
+Grátis em encomendas acima de 59,93 €. Caso contrário, aplica-se uma pequena taxa de entrega, indicada na finalização da compra.
 
 ## Prazos de entrega
 As encomendas feitas antes das 14h, de segunda a sexta-feira, são normalmente expedidas no próprio dia e entregues em 1 a 3 dias úteis.

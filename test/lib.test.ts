@@ -27,6 +27,7 @@ const { money } = await import('../src/lib/format.ts');
 const { isPostcode } = await import('../src/lib/validate.ts');
 const store = await import('../src/lib/store.ts');
 const { siteUrl } = await import('../src/lib/config.ts');
+const { EUR_PER_GBP, euroOptions, euroText } = await import('../src/lib/euro.ts');
 console.log = silence;
 
 test('database is seeded with demo catalogue, pages and admin', () => {
@@ -54,7 +55,7 @@ test('cart prices always come from the database, never the session', () => {
   cart.add(session, p, { option: '256GB', colour: 'Blue Titanium', qty: 2 });
   cart.add(session, p, { option: 'FREE-PHONE', colour: '<script>', qty: 999 }); // invalid variant + qty
   const s = cart.summary(session);
-  assert.equal(s.lines[0].unit, p.price_pence + 10000);
+  assert.equal(s.lines[0].unit, p.price_pence + Math.round(10000 * EUR_PER_GBP));
   assert.equal(s.lines[1].option, '128GB'); // unknown option falls back to a real one
   assert.equal(s.lines[1].colour, 'Natural Titanium');
   assert.ok(s.lines.every((l) => l.qty <= cart.MAX_QTY));
@@ -91,7 +92,7 @@ test('redirects, money and input helpers', () => {
   assert.equal(safeRedirectPath('https://evil.example'), '/');
   assert.equal(safeRedirectPath('/\\evil.example'), '/');
   assert.equal(safeRedirectPath('/account/orders'), '/account/orders');
-  assert.equal(toPence('£1,299.99'), 129999);
+  assert.equal(toPence('€1,299.99'), 129999);
   assert.equal(toPence('-5'), null);
   assert.equal(toPence('1e9'), null);
   assert.equal(str('  hi\u0000there  ', 5), 'hithe');
@@ -121,7 +122,7 @@ test('translated content falls back to English when blank', () => {
   assert.equal(pick({ name: 'Mouse', name_pt: '  ' }, 'name', 'pt'), 'Mouse');
   assert.equal(pick({ name: 'Mouse', name_pt: 'Rato' }, 'name', 'en'), 'Mouse');
   assert.match(money(69900, 'pt'), /699,00/);
-  assert.match(money(69900), /£699\.00/);
+  assert.match(money(69900), /€699\.00/);
   assert.ok(isPostcode('1000-001'));
 });
 
@@ -172,4 +173,15 @@ test('a Stripe session settles an order once, whichever notice arrives first', a
   for (let i = 0; i < 2; i++) assert.equal(settleSession({ id: 'cs_gone', status: 'expired', payment_status: 'unpaid' })?.state, 'cancelled');
   assert.equal(order('T-GONE').status, 'cancelled');
   assert.equal(stockNow(), stock - 1, 'stock returned exactly once');
+});
+
+test('the switch to euros converts every kind of amount exactly once', () => {
+  const version = () => Number(get<{ user_version: number }>('PRAGMA user_version')!.user_version);
+  assert.equal(version(), 1);
+  assert.equal(get<{ price_pence: number }>("SELECT price_pence FROM products WHERE slug = 'iphone-15-pro'")!.price_pence, Math.round(69900 * EUR_PER_GBP));
+  assert.equal(euroOptions('128GB\n256GB|+100\n1TB|+£500'), '128GB\n256GB|+119.86\n1TB|+599.30');
+  assert.equal(euroText('Free over £50, or £1,000.50'), 'Free over €59.93, or €1199.20');
+  assert.equal(euroText('Acima de 50 £'), 'Acima de 59,93 €');
+  assert.equal(euroText('Prices in pounds sterling (GBP)'), 'Prices in euros (EUR)');
+  assert.equal(euroText('Already €59.93'), 'Already €59.93');
 });

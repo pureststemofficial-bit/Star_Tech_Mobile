@@ -71,7 +71,7 @@ export default async function ProductPage({ params }: { params: Params }) {
     ...(reviews.length ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating.toFixed(1), reviewCount: reviews.length } } : {}),
     offers: {
       '@type': 'Offer',
-      priceCurrency: 'GBP',
+      priceCurrency: 'EUR',
       price: (product.price_pence / 100).toFixed(2),
       availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     },
