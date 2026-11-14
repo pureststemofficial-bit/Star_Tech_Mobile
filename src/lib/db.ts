@@ -13,15 +13,31 @@ import { seedBlog } from './blog-seed.ts';
  * touches the database) and kept on globalThis so dev hot-reload doesn't open more.
  * Every query is parameterised; nothing user-supplied is concatenated into SQL.
  */
-interface DbState { conn: DatabaseSync; cache: Map<string, StatementSync> }
+interface DbState { conn: DatabaseSync; cache: Map<string, StatementSync>; columns?: number }
 const g = globalThis as typeof globalThis & { __startechDb?: DbState };
 
 // `next build` prerenders a few pages (e.g. the 404 page, which shows site settings). Give it a
 // throwaway in-memory database so a build never creates the real database or an admin account.
 const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
 
+/** Adds any ADDED_COLUMNS the database is missing. */
+function addColumns(conn: DatabaseSync) {
+  for (const [table, column, definition] of ADDED_COLUMNS) {
+    const exists = conn.prepare(`SELECT 1 AS x FROM pragma_table_info('${table}') WHERE name = ?`).get(column);
+    if (!exists) conn.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+
 function state(): DbState {
-  if (g.__startechDb) return g.__startechDb;
+  if (g.__startechDb) {
+    // Dev hot-reload keeps the old connection, so pick up columns added since it was opened.
+    if (g.__startechDb.columns !== ADDED_COLUMNS.length) {
+      addColumns(g.__startechDb.conn);
+      g.__startechDb.columns = ADDED_COLUMNS.length;
+      g.__startechDb.cache.clear();
+    }
+    return g.__startechDb;
+  }
   if (!isBuild) fs.mkdirSync(path.dirname(dbFile), { recursive: true });
   const conn = new DatabaseSync(isBuild ? ':memory:' : dbFile);
   conn.exec(`
@@ -32,11 +48,8 @@ function state(): DbState {
     PRAGMA temp_store = MEMORY;
   `);
   conn.exec(SCHEMA);
-  for (const [table, column, definition] of ADDED_COLUMNS) {
-    const exists = conn.prepare(`SELECT 1 AS x FROM pragma_table_info('${table}') WHERE name = ?`).get(column);
-    if (!exists) conn.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
-  }
-  g.__startechDb = { conn, cache: new Map() };
+  addColumns(conn);
+  g.__startechDb = { conn, cache: new Map(), columns: ADDED_COLUMNS.length };
   // First connection in this process: make sure demo data, pages and an admin account exist.
   seed({ get, all, run, tx }, { createAdmin: !isBuild });
   // Checked inside the write lock so two processes starting together can't both convert.

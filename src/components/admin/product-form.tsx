@@ -107,6 +107,8 @@ export function ProductForm({ product, images, cats }: { product?: Product; imag
             <CardContent className="grid gap-3">
               <Label className="font-medium"><Checkbox name="is_active" defaultChecked={p ? !!p.is_active : true} /> Visible on website</Label>
               <Label className="font-medium"><Checkbox name="is_featured" defaultChecked={!!p?.is_featured} /> Show in Best Sellers</Label>
+              <Label className="font-medium"><Checkbox name="is_popular" defaultChecked={!!p?.is_popular} /> Show in Popular</Label>
+              <Label className="font-medium"><Checkbox name="is_new_arrival" defaultChecked={!!p?.is_new_arrival} /> Show in New Arrivals</Label>
               <Field label="URL slug" htmlFor="slug" hint="Leave blank to generate from the name." className="mt-2">
                 <Input id="slug" name="slug" defaultValue={p?.slug} maxLength={100} />
               </Field>

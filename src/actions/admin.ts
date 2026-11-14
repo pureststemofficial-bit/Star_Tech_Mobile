@@ -71,6 +71,8 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     features_pt: str(formData.get('features_pt'), 3000),
     specs_pt: str(formData.get('specs_pt'), 5000),
     is_featured: bool(formData.get('is_featured')),
+    is_popular: bool(formData.get('is_popular')),
+    is_new_arrival: bool(formData.get('is_new_arrival')),
     is_active: bool(formData.get('is_active')),
   };
   const price = toPence(formData.get('price'));
@@ -88,11 +90,11 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
   let productId = id;
   if (existing) {
     run(`UPDATE products SET name = ?, slug = ?, category_id = ?, brand = ?, price_pence = ?, compare_pence = ?, stock = ?,
-           short_desc = ?, description = ?, features = ?, specs = ?, colours = ?, options = ?, is_featured = ?, is_active = ?,
+           short_desc = ?, description = ?, features = ?, specs = ?, colours = ?, options = ?, is_featured = ?, is_popular = ?, is_new_arrival = ?, is_active = ?,
            name_pt = ?, short_desc_pt = ?, description_pt = ?, features_pt = ?, specs_pt = ?,
            updated_at = datetime('now') WHERE id = ?`,
       form.name, form.slug, form.category_id, form.brand, price, compare, stock, form.short_desc, form.description,
-      form.features, form.specs, form.colours, form.options, form.is_featured, form.is_active,
+      form.features, form.specs, form.colours, form.options, form.is_featured, form.is_popular, form.is_new_arrival, form.is_active,
       form.name_pt, form.short_desc_pt, form.description_pt, form.features_pt, form.specs_pt, id);
 
     // Remove ticked images, then set the chosen main image.
@@ -113,10 +115,10 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     }
   } else {
     productId = run(`INSERT INTO products (name, slug, category_id, brand, price_pence, compare_pence, stock, short_desc, description,
-                       features, specs, colours, options, is_featured, is_active, name_pt, short_desc_pt, description_pt, features_pt, specs_pt)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                       features, specs, colours, options, is_featured, is_popular, is_new_arrival, is_active, name_pt, short_desc_pt, description_pt, features_pt, specs_pt)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       form.name, form.slug, form.category_id, form.brand, price, compare, stock, form.short_desc, form.description,
-      form.features, form.specs, form.colours, form.options, form.is_featured, form.is_active,
+      form.features, form.specs, form.colours, form.options, form.is_featured, form.is_popular, form.is_new_arrival, form.is_active,
       form.name_pt, form.short_desc_pt, form.description_pt, form.features_pt, form.specs_pt).lastInsertRowid;
   }
 

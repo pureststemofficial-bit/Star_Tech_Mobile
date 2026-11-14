@@ -3,10 +3,10 @@ import { ArrowRight, ArrowUpRight, Check, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/site/container';
 import { SectionHeading } from '@/components/site/bits';
-import { ProductGrid } from '@/components/site/product-card';
+import { ProductCarousel } from '@/components/site/product-card';
 import { Features } from '@/components/site/features';
 import { localizedSettings, categories } from '@/lib/store';
-import { brandCounts, featured } from '@/lib/catalog';
+import { brandCounts, featured, newArrivals, popular } from '@/lib/catalog';
 import { getI18n } from '@/lib/i18n/server';
 import { pick } from '@/lib/i18n/config';
 import { cn } from '@/lib/utils';
@@ -31,6 +31,8 @@ export default async function HomePage() {
   const site = localizedSettings(locale);
   const tiles = categories().filter((c) => c.show_on_home);
   const headline = site.hero_title.split('\n');
+  const popularItems = popular(12);
+  const newItems = newArrivals(12);
   const brands = brandCounts().map((b) => b.brand).filter((b) => b !== 'Startech');
 
   return (
@@ -95,8 +97,31 @@ export default async function HomePage() {
             title={t('home.bestTitle')}
             action={<Link href="/shop" className="link-grow inline-flex shrink-0 items-center gap-1.5 py-2 text-sm">{t('home.viewAll')} <ArrowRight className="size-4" /></Link>}
           />
-          <ProductGrid products={featured(8)} cols={4} />
+          <ProductCarousel products={featured(12)} label={t('home.bestTitle')} />
         </section>
+
+        {/* Popular and New Arrivals show only products the admin ticked; empty sections are hidden. */}
+        {popularItems.length ? (
+          <section className="pt-24">
+            <SectionHeading
+              eyebrow={t('home.popularEyebrow')}
+              title={t('home.popularTitle')}
+              action={<Link href="/shop?sort=popular" className="link-grow inline-flex shrink-0 items-center gap-1.5 py-2 text-sm">{t('home.viewAll')} <ArrowRight className="size-4" /></Link>}
+            />
+            <ProductCarousel products={popularItems} label={t('home.popularTitle')} />
+          </section>
+        ) : null}
+
+        {newItems.length ? (
+          <section className="pt-24">
+            <SectionHeading
+              eyebrow={t('home.newEyebrow')}
+              title={t('home.newTitle')}
+              action={<Link href="/shop?sort=newest" className="link-grow inline-flex shrink-0 items-center gap-1.5 py-2 text-sm">{t('home.viewAll')} <ArrowRight className="size-4" /></Link>}
+            />
+            <ProductCarousel products={newItems} label={t('home.newTitle')} />
+          </section>
+        ) : null}
       </Container>
 
       {/* Brand marquee: duplicated once so the loop is seamless; the copy is hidden from screen readers. */}

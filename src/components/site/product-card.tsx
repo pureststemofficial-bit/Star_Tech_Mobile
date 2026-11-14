@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Price, Stars } from './bits';
 import { AddToCartButton } from './add-to-cart';
+import { Carousel } from './carousel';
 import { getI18n } from '@/lib/i18n/server';
 import { pick } from '@/lib/i18n/config';
 import type { CardProduct } from '@/lib/types';
@@ -39,6 +40,18 @@ export function ProductGrid({ products, cols = 4 }: { products: CardProduct[]; c
   return (
     <div className={`grid grid-cols-2 gap-x-4 gap-y-9 sm:gap-x-6 ${cols === 4 ? 'lg:grid-cols-4' : 'sm:grid-cols-3'}`}>
       {products.map((p) => <div key={p.id} className="reveal"><ProductCard p={p} /></div>)}
+    </div>
+  );
+}
+
+/** Products in a swipeable row with previous/next arrows. */
+export async function ProductCarousel({ products, label }: { products: CardProduct[]; label: string }) {
+  const { t } = await getI18n();
+  return (
+    <div className="reveal">
+      <Carousel label={label} prevLabel={t('home.prev')} nextLabel={t('home.next')}>
+        {products.map((p) => <ProductCard key={p.id} p={p} />)}
+      </Carousel>
     </div>
   );
 }

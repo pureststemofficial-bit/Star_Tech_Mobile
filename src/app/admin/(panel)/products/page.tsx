@@ -32,8 +32,8 @@ export default async function ProductsAdmin({ searchParams }: { searchParams: Pr
   if (category) { where.push('p.category_id = ?'); params.push(category); }
   const w = where.join(' AND ');
   const total = get<{ n: number }>(`SELECT COUNT(*) AS n FROM products p WHERE ${w}`, ...params)?.n ?? 0;
-  const products = all<{ id: number; name: string; slug: string; brand: string; price_pence: number; stock: number; is_active: number; is_featured: number; category: string | null; thumb: string | null }>(`
-    SELECT p.id, p.name, p.slug, p.brand, p.price_pence, p.stock, p.is_active, p.is_featured, c.name AS category,
+  const products = all<{ id: number; name: string; slug: string; brand: string; price_pence: number; stock: number; is_active: number; is_featured: number; is_popular: number; is_new_arrival: number; category: string | null; thumb: string | null }>(`
+    SELECT p.id, p.name, p.slug, p.brand, p.price_pence, p.stock, p.is_active, p.is_featured, p.is_popular, p.is_new_arrival, c.name AS category,
       (SELECT thumb FROM product_images i WHERE i.product_id = p.id ORDER BY sort_order, id LIMIT 1) AS thumb
     FROM products p LEFT JOIN categories c ON c.id = p.category_id
     WHERE ${w} ORDER BY p.id DESC LIMIT ? OFFSET ?`, ...params, PER_PAGE, (page - 1) * PER_PAGE);
@@ -65,7 +65,7 @@ export default async function ProductsAdmin({ searchParams }: { searchParams: Pr
                   </TableCell>
                   <TableCell>
                     <Link href={`/admin/products/${p.id}`} className="font-semibold hover:text-primary">{p.name}</Link>
-                    <div className="text-xs text-muted-foreground">{p.brand}{p.is_featured ? ' · ★ Best seller' : ''}</div>
+                    <div className="text-xs text-muted-foreground">{p.brand}{p.is_featured ? ' · ★ Best seller' : ''}{p.is_popular ? ' · Popular' : ''}{p.is_new_arrival ? ' · New arrival' : ''}</div>
                   </TableCell>
                   <TableCell>{p.category || '—'}</TableCell>
                   <TableCell>{money(p.price_pence)}</TableCell>

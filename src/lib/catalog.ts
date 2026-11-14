@@ -82,6 +82,16 @@ export const featured = (limit = 10) =>
   all<CardProduct>(`SELECT ${CARD_COLUMNS} FROM products p WHERE p.is_active = 1
        ORDER BY p.is_featured DESC, p.sold_count DESC, p.id DESC LIMIT ?`, limit);
 
+/** Products the admin ticked for the home page "Popular" section. */
+export const popular = (limit = 8) =>
+  all<CardProduct>(`SELECT ${CARD_COLUMNS} FROM products p WHERE p.is_active = 1 AND p.is_popular = 1
+       ORDER BY p.sold_count DESC, p.id DESC LIMIT ?`, limit);
+
+/** Products the admin ticked for the home page "New Arrivals" section, newest first. */
+export const newArrivals = (limit = 8) =>
+  all<CardProduct>(`SELECT ${CARD_COLUMNS} FROM products p WHERE p.is_active = 1 AND p.is_new_arrival = 1
+       ORDER BY p.created_at DESC, p.id DESC LIMIT ?`, limit);
+
 export const related = (product: Pick<Product, 'id' | 'category_id' | 'brand'>, limit = 4) =>
   all<CardProduct>(`SELECT ${CARD_COLUMNS} FROM products p
        WHERE p.is_active = 1 AND p.id != ? AND (p.category_id IS ? OR p.brand = ?)

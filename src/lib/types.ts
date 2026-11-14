@@ -44,6 +44,8 @@ export interface Product {
   colours: string;
   options: string;
   is_featured: number;
+  is_popular: number;
+  is_new_arrival: number;
   is_active: number;
   sold_count: number;
   created_at: string;
