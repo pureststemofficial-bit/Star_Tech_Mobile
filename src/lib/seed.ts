@@ -8,17 +8,18 @@ import type { Db } from './db.ts';
  * Catalogue prices and option extras are in pounds; euro.ts converts them right after seeding.
  */
 
+// Array order is the order of the navbar, the home page tiles and the shop filters.
 const CATEGORIES = [
   { slug: 'mobile-phones', name: 'Mobile Phones', nav: 'Phones', inNav: 1, home: 1, art: ['phone', { color: '#2b3a67', accent: '#1d2747' }] },
-  { slug: 'accessories', name: 'Accessories', nav: 'Accessories', inNav: 1, home: 1, art: ['charger', {}] },
-  { slug: 'headphones', name: 'Headphones & Earphones', nav: 'Headphones', inNav: 0, home: 1, art: ['headphones', {}] },
-  { slug: 'gaming', name: 'Gaming', nav: 'Gaming', inNav: 1, home: 1, art: ['gamepad', { color: '#1b1d22' }] },
   { slug: 'laptops', name: 'Laptops', nav: 'Laptops', inNav: 1, home: 1, art: ['laptop', {}] },
+  { slug: 'speakers', name: 'Speakers', nav: 'Speakers', inNav: 1, home: 1, art: ['speaker', {}] },
+  { slug: 'headphones', name: 'Headphones & Earphones', nav: 'Headphones', inNav: 1, home: 1, art: ['headphones', {}] },
+  { slug: 'accessories', name: 'Accessories', nav: 'Accessories', inNav: 1, home: 1, art: ['charger', {}] },
+  { slug: 'gaming', name: 'Gaming', nav: 'Gaming', inNav: 1, home: 1, art: ['gamepad', { color: '#1b1d22' }] },
+  { slug: 'car-accessories', name: 'Car Accessories', nav: '', inNav: 0, home: 1, art: ['charger', { color: '#2b2f38' }] },
   { slug: 'chargers-cables', name: 'Chargers & Cables', nav: '', inNav: 0, home: 0, art: ['cable', {}] },
   { slug: 'mobile-covers', name: 'Mobile Covers', nav: '', inNav: 0, home: 0, art: ['case', {}] },
   { slug: 'screen-protectors', name: 'Screen Protectors', nav: '', inNav: 0, home: 0, art: ['protector', {}] },
-  { slug: 'car-accessories', name: 'Car Accessories', nav: '', inNav: 0, home: 1, art: ['charger', { color: '#2b2f38' }] },
-  { slug: 'speakers', name: 'Speakers', nav: '', inNav: 0, home: 1, art: ['speaker', {}] },
   { slug: 'others', name: 'Others', nav: '', inNav: 0, home: 0, art: ['watch', {}] },
 ];
 

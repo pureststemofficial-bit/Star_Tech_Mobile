@@ -5,7 +5,7 @@ import type { Db } from './db.ts';
  * tables. It runs once per database (tracked by `content_version`) and only touches values that
  * are still the original demo ones, so anything edited in the admin panel is left alone.
  */
-const CONTENT_VERSION = '4';
+const CONTENT_VERSION = '5';
 
 type Spec = 'display' | 'chip' | 'camera' | 'storage' | 'ai' | 'updates' | 'port' | 'audio' | 'anc' | 'adaptive' | 'case' | 'battery' | 'multipoint' | 'calls'
   | 'water' | 'power' | 'ssd' | 'graphics' | 'grip' | 'dpad' | 'share' | 'wireless' | 'sensor' | 'buttons' | 'weights' | 'lighting' | 'switches' | 'polling'
@@ -67,7 +67,7 @@ const CATEGORIES: Record<string, [string, string]> = {
   'mobile-covers': ['Capas para telemóvel', ''],
   'screen-protectors': ['Protetores de ecrã', ''],
   'car-accessories': ['Acessórios para automóvel', ''],
-  speakers: ['Colunas', ''],
+  speakers: ['Colunas', 'Colunas'],
   others: ['Outros', ''],
 };
 
@@ -191,6 +191,15 @@ export function applyContent({ get, run, tx }: Db) {
     // Version 3 created them hidden from the home page; version 4 shows them there.
     if (get("SELECT 1 AS x FROM settings WHERE key = 'content_version' AND value = '3'")) {
       run("UPDATE categories SET show_on_home = 1 WHERE slug IN ('car-accessories', 'speakers')");
+    }
+    // Version 5 sets the navbar to Phones, Laptops, Speakers, Headphones, Accessories, Gaming
+    // (new databases get this order from the seed, which has no content_version yet).
+    if (get("SELECT 1 AS x FROM settings WHERE key = 'content_version'")) {
+      const nav = ['mobile-phones', 'laptops', 'speakers', 'headphones', 'accessories', 'gaming'];
+      const rest = ['car-accessories', 'chargers-cables', 'mobile-covers', 'screen-protectors', 'others'];
+      [...nav, ...rest].forEach((slug, i) => run('UPDATE categories SET sort_order = ? WHERE slug = ?', i, slug));
+      run(`UPDATE categories SET show_in_nav = 1 WHERE slug IN (${nav.map(() => '?').join(', ')})`, ...nav);
+      run("UPDATE categories SET nav_label = 'Speakers' WHERE slug = 'speakers' AND nav_label = ''");
     }
     for (const [slug, [name, nav]] of Object.entries(CATEGORIES)) {
       run(`UPDATE categories SET name_pt = CASE WHEN name_pt = '' THEN ? ELSE name_pt END,

@@ -18,8 +18,6 @@ export async function Header() {
     { href: '/shop', label: t('nav.shop') },
     ...categories().filter((c) => c.show_in_nav).map((c) => ({ href: `/shop?category=${c.slug}`, label: pick(c, 'nav_label', locale) || pick(c, 'name', locale) })),
     { href: '/repairs', label: t('nav.repairs') },
-    { href: '/blog', label: t('nav.blog') },
-    { href: '/about', label: t('nav.about') },
     { href: '/contact', label: t('nav.contact') },
   ];
   const actionClass = 'relative grid size-11 place-items-center rounded-full text-white transition-colors duration-300 hover:bg-white/10 [&_svg]:size-[21px] [&_svg]:stroke-[1.6]';

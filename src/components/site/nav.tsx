@@ -23,7 +23,7 @@ function useIsActive() {
 function MainNavInner({ links }: { links: NavLink[] }) {
   const isActive = useIsActive();
   return (
-    <ul className="scrollbar-none mx-auto flex max-w-[1320px] gap-6 overflow-x-auto px-4 sm:px-6 lg:justify-center lg:gap-9">
+    <ul className="scrollbar-none mx-auto flex max-w-[1320px] gap-6 overflow-x-auto px-4 sm:px-6 lg:justify-center-safe lg:gap-9">
       {links.map((l) => {
         const active = isActive(l.href);
         return (
