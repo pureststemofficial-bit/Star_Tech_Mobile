@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ActionForm, SubmitButton } from '@/components/forms/action-form';
+import { Trash2 } from 'lucide-react';
+import { ActionForm, ConfirmButton, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
 import { PageHeader } from '@/components/admin/page-header';
 import { DetailList } from '@/components/admin/detail-list';
-import { updateOrder } from '@/actions/admin';
+import { deleteOrder, updateOrder } from '@/actions/admin';
+import { deleteMessage } from '../delete-message';
 import { requireAdmin } from '@/lib/auth';
 import { get, all } from '@/lib/db';
 import { formatDate, label, money } from '@/lib/format';
@@ -88,6 +90,10 @@ export default async function OrderAdmin({ params }: { params: Promise<{ id: str
               <Field label="Tracking number" htmlFor="tracking_number"><Input id="tracking_number" name="tracking_number" defaultValue={order.tracking_number} maxLength={60} /></Field>
               <SubmitButton className="w-full">Save</SubmitButton>
             </ActionForm>
+            <form action={deleteOrder} className="mt-4 border-t pt-4">
+              <input type="hidden" name="id" value={order.id} />
+              <ConfirmButton variant="white" className="w-full text-destructive" message={deleteMessage(order)}><Trash2 /> Delete order</ConfirmButton>
+            </form>
           </CardContent>
         </Card>
       </div>

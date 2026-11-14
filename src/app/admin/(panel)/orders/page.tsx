@@ -1,11 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Form from 'next/form';
+import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FilterTabs, PageHeader } from '@/components/admin/page-header';
+import { ConfirmButton } from '@/components/forms/action-form';
+import { deleteOrder } from '@/actions/admin';
+import { deleteMessage } from './delete-message';
 import { StatusBadge } from '@/components/site/bits';
 import { Pagination } from '@/components/site/pagination';
 import { requireAdmin } from '@/lib/auth';
@@ -35,6 +39,7 @@ export default async function OrdersAdmin({ searchParams }: { searchParams: Prom
   }
   const w = where.join(' AND ');
   const total = get<{ n: number }>(`SELECT COUNT(*) AS n FROM orders WHERE ${w}`, ...params)?.n ?? 0;
+  const listUrl = `/admin/orders?${new URLSearchParams({ ...(status && { status }), ...(q && { q }), ...(page > 1 && { page: String(page) }) })}`;
   const orders = all<Order>(`SELECT * FROM orders WHERE ${w} ORDER BY id DESC LIMIT ? OFFSET ?`, ...params, PER_PAGE, (page - 1) * PER_PAGE);
 
   return (
@@ -52,7 +57,7 @@ export default async function OrdersAdmin({ searchParams }: { searchParams: Prom
         <CardContent className="px-2">
           {!orders.length ? <p className="p-4 text-sm text-muted-foreground">No orders found.</p> : (
             <Table>
-              <TableHeader><TableRow><TableHead>Order</TableHead><TableHead>Date</TableHead><TableHead>Customer</TableHead><TableHead>Total</TableHead><TableHead>Payment</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Order</TableHead><TableHead>Date</TableHead><TableHead>Customer</TableHead><TableHead>Total</TableHead><TableHead>Payment</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
               <TableBody>
                 {orders.map((o) => (
                   <TableRow key={o.id}>
@@ -62,6 +67,13 @@ export default async function OrdersAdmin({ searchParams }: { searchParams: Prom
                     <TableCell>{money(o.total_pence)}</TableCell>
                     <TableCell><StatusBadge status={o.payment_status} /></TableCell>
                     <TableCell><StatusBadge status={o.status} /></TableCell>
+                    <TableCell>
+                      <form action={deleteOrder}>
+                        <input type="hidden" name="id" value={o.id} />
+                        <input type="hidden" name="back" value={listUrl} />
+                        <ConfirmButton size="icon-sm" variant="white" aria-label={`Delete order #${o.order_number}`} message={deleteMessage(o)}><Trash2 /></ConfirmButton>
+                      </form>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

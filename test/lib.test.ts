@@ -253,3 +253,28 @@ test('delivery is charged by the city the customer chooses', async () => {
   assert.equal(deliveryCharge(999, 500, 1000), 500);
   run('UPDATE delivery_cities SET fee_pence = NULL');
 });
+
+test('deleting an order removes its items and returns unsent stock', async () => {
+  const { removeOrder } = await import('../src/lib/orders.ts');
+  const p = get<{ id: number; stock: number }>("SELECT id, stock FROM products WHERE slug = 'iphone-15'")!;
+  const place = (number: string, status: string) => {
+    run('UPDATE products SET stock = stock - 2 WHERE id = ?', p.id);
+    const o = run(`INSERT INTO orders (order_number, email, full_name, line1, city, postcode, subtotal_pence, delivery_pence, total_pence, status)
+                   VALUES (?, 'a@b.pt', 'Test', 'Rua 1', 'Lisboa', '1000-001', 100, 0, 100, ?)`, number, status);
+    run('INSERT INTO order_items (order_id, product_id, name, variant, image, price_pence, qty) VALUES (?, ?, ?, ?, ?, ?, ?)', o.lastInsertRowid, p.id, 'iPhone 15', '', '', 100, 2);
+    return o.lastInsertRowid;
+  };
+  const stock = () => get<{ stock: number }>('SELECT stock FROM products WHERE id = ?', p.id)!.stock;
+
+  const pending = place('DEL-1', 'processing');
+  assert.equal(removeOrder(pending), 'DEL-1');
+  assert.equal(stock(), p.stock, 'unsent items go back into stock');
+  assert.equal(get<{ n: number }>('SELECT COUNT(*) AS n FROM order_items WHERE order_id = ?', pending)!.n, 0, 'items deleted too');
+
+  const sent = place('DEL-2', 'delivered');
+  removeOrder(sent);
+  assert.equal(stock(), p.stock - 2, 'delivered goods are not restocked');
+  assert.equal(get('SELECT 1 AS x FROM orders WHERE id = ?', sent), undefined);
+  assert.equal(removeOrder(999999), null);
+  run('UPDATE products SET stock = ? WHERE id = ?', p.stock, p.id);
+});

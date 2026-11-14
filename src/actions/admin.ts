@@ -8,6 +8,7 @@ import { requireAdmin } from '@/lib/auth';
 import { verifyPassword } from '@/lib/password';
 import { startUserSession, endSession, flash, revokeUserSessions } from '@/lib/session';
 import { rateLimit } from '@/lib/ratelimit';
+import { removeOrder } from '@/lib/orders';
 import { saveImage, removeUpload, filesFrom, ImageError } from '@/lib/images';
 import { str, int, bool, isEmail, isDate, oneOf, checker, fields } from '@/lib/validate';
 import { toPence, slugify, safeRedirectPath } from '@/lib/helpers';
@@ -224,6 +225,19 @@ export async function updateOrder(_prev: FormState, formData: FormData): Promise
   store.invalidate();
   refresh();
   return { ok: true, message: 'Order updated.', at: Date.now() };
+}
+
+/** Admin: permanently delete an order (see removeOrder). */
+export async function deleteOrder(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const deleted = removeOrder(int(formData.get('id')));
+  if (deleted) {
+    store.invalidate();
+    await flash('success', `Order #${deleted} deleted.`);
+  }
+  // Return to the list the admin came from (keeps its filter and page), never to another site.
+  const back = safeRedirectPath(formData.get('back'), '/admin/orders');
+  redirect(back === '/admin/orders' || back.startsWith('/admin/orders?') ? back : '/admin/orders');
 }
 
 /* ---------- Repairs ---------- */
