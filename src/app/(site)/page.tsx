@@ -26,6 +26,16 @@ function tileSpan(i: number, count: number) {
   return cn(narrow, wide && LG_LAST_ROW[lgLeft]);
 }
 
+/* Gradient pairs the brand chips cycle through, so neighbouring brands never share a colour. */
+const BRAND_COLOURS = [
+  { '--c1': '#5b8cff', '--c2': '#9b6bff' },
+  { '--c1': '#ff6fae', '--c2': '#ff9a62' },
+  { '--c1': '#3fd9c2', '--c2': '#5bb4ff' },
+  { '--c1': '#ffc94a', '--c2': '#ff7a59' },
+  { '--c1': '#b98bff', '--c2': '#ff6fd8' },
+  { '--c1': '#6be585', '--c2': '#2fc4e0' },
+];
+
 export default async function HomePage() {
   const { t, locale } = await getI18n();
   const site = localizedSettings(locale);
@@ -125,13 +135,21 @@ export default async function HomePage() {
       </Container>
 
       {/* Brand marquee: duplicated once so the loop is seamless; the copy is hidden from screen readers. */}
-      <section aria-label={t('home.brandsLabel')} className="marquee mt-24 overflow-hidden border-y py-7" data-allow-overflow>
-        <div className="marquee-track flex w-max">
-          {[0, 1].map((copy) => (
-            <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0">
-              {[...brands, ...brands].map((b, i) => <li key={i} className="font-display px-9 text-3xl whitespace-nowrap text-foreground/70">{b}</li>)}
-            </ul>
-          ))}
+      <section aria-label={t('home.brandsLabel')} className="marquee brand-band relative isolate mt-24 overflow-hidden py-5 sm:py-6" data-allow-overflow>
+        <div className="brand-fade">
+          <div className="marquee-track flex w-max">
+            {[0, 1].map((copy) => (
+              <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 gap-2 pr-2">
+                {[...brands, ...brands].map((b, i) => (
+                  <li key={i} style={BRAND_COLOURS[i % BRAND_COLOURS.length] as React.CSSProperties}>
+                    <Link href={`/shop?brand=${encodeURIComponent(b)}`} tabIndex={copy === 1 ? -1 : undefined} className="brand-chip">
+                      <span className="brand-name font-display">{b}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
         </div>
       </section>
 

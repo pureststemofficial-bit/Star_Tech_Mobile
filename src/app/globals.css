@@ -160,6 +160,32 @@
 .marquee-track { animation: marquee 38s linear infinite; }
 .marquee:hover .marquee-track { animation-play-state: paused; }
 
+/* Brand strip: a deep navy band with soft colour glows, and edges that fade the chips in and out. */
+.brand-band {
+  background:
+    radial-gradient(50% 140% at 50% 50%, rgb(30 99 255 / 0.16), transparent 70%),
+    linear-gradient(90deg, var(--navy-deep), var(--ink) 50%, var(--navy-deep));
+}
+.brand-fade { mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+.brand-chip {
+  display: block;
+  padding: 0.4rem 1.25rem;
+  white-space: nowrap;
+}
+.brand-name {
+  font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+  line-height: 1;
+  color: rgb(255 255 255 / 0.82);
+  transition: color 0.3s;
+}
+/* The brand's colour appears on the name only on hover. */
+.brand-chip:hover .brand-name, .brand-chip:focus-visible .brand-name {
+  background: linear-gradient(90deg, var(--c1), var(--c2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 /* Horizontal product carousels: swipe/scroll without a visible scrollbar. */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
