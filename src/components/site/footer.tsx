@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { Mail, MapPin, Phone } from 'lucide-react';
-import { localizedOptions, localizedSettings, categories } from '@/lib/store';
+import { localizedOptions, localizedSettings } from '@/lib/store';
 import { getI18n } from '@/lib/i18n/server';
-import { pick } from '@/lib/i18n/config';
 import { BrandIcon } from './brand-icons';
 
 export async function Footer() {
@@ -14,13 +13,10 @@ export async function Footer() {
     ['tiktok', site.social_tiktok],
     ['youtube', site.social_youtube],
   ].filter(([, url]) => url);
+  // Shop, the nav categories, Repairs and Contact are already in the header, so they aren't repeated here.
   const quick = [
-    { href: '/shop', label: t('nav.shop') },
-    ...categories().filter((c) => c.show_in_nav).map((c) => ({ href: `/shop?category=${c.slug}`, label: pick(c, 'nav_label', locale) || pick(c, 'name', locale) })),
-    { href: '/repairs', label: t('nav.repairs') },
     { href: '/blog', label: t('nav.blog') },
     { href: '/about', label: t('foot.about') },
-    { href: '/contact', label: t('foot.contactUs') },
   ];
   const service = [
     { href: '/delivery', label: t('foot.delivery') },
@@ -36,8 +32,7 @@ export async function Footer() {
   return (
     <footer className="mt-24 bg-ink text-sm text-white/75">
       <div className="mx-auto max-w-[1320px] px-4 pt-16 sm:px-6">
-        <p className="font-display max-w-3xl text-[clamp(2.25rem,5vw,4rem)] leading-[1.05] text-white">{site.tagline}</p>
-        <div className="mt-14 grid grid-cols-2 gap-x-8 gap-y-10 pb-12 lg:grid-cols-[1.3fr_1fr_1fr_1.3fr_1.1fr]">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 pb-12 lg:grid-cols-[1.3fr_1fr_1fr_1.3fr_1.1fr]">
           <div className="col-span-full lg:col-span-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/img/logo.svg" alt={site.site_name} width={190} height={50} loading="lazy" className="h-auto w-[170px]" />
