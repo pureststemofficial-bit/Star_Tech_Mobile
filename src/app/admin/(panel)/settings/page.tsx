@@ -100,6 +100,7 @@ export default async function SettingsAdmin() {
               {text('email', 'Email', undefined, 254)}
             </div>
             {area('address', 'Address', undefined, 3)}
+            {text('tax_number', 'Tax number (NIF)', 'Printed on order invoices. Leave blank to leave it off.', 20)}
             {area('hours', 'Opening hours', undefined, 3)}
             {text('map_query', 'Map location', 'Address shown on the Google map on the Contact page.')}
             <div className="grid gap-4 sm:grid-cols-2">

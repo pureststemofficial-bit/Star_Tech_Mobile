@@ -27,6 +27,7 @@ const BASE = {
   features: 'Fast Delivery in Portugal|Same-day dispatch before 2pm\nSecure Checkout|Encrypted end-to-end\n14-Day Returns|Hassle-free\nExpert Support|Here to help',
   ...SHOP_DETAILS,
   hours: 'Mon - Sat: 9:00 AM - 7:00 PM\nSun: 10:00 AM - 5:00 PM',
+  tax_number: '', // NIF, printed on order invoices when set
   // Blank hides the icon: add your real profile links in Admin -> Settings.
   social_facebook: '',
   social_instagram: '',

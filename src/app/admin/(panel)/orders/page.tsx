@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Form from 'next/form';
-import { Trash2 } from 'lucide-react';
+import { Download, FileText, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -67,7 +67,9 @@ export default async function OrdersAdmin({ searchParams }: { searchParams: Prom
                     <TableCell>{money(o.total_pence)}</TableCell>
                     <TableCell><StatusBadge status={o.payment_status} /></TableCell>
                     <TableCell><StatusBadge status={o.status} /></TableCell>
-                    <TableCell>
+                    <TableCell className="flex justify-end gap-1">
+                      <Button asChild size="icon-sm" variant="white"><a href={`/admin/orders/${o.id}/invoice`} target="_blank" rel="noopener" aria-label={`View invoice for #${o.order_number}`} title="View invoice"><FileText /></a></Button>
+                      <Button asChild size="icon-sm" variant="white"><a href={`/admin/orders/${o.id}/invoice?download=1`} download aria-label={`Download invoice for #${o.order_number}`} title="Download invoice"><Download /></a></Button>
                       <form action={deleteOrder}>
                         <input type="hidden" name="id" value={o.id} />
                         <input type="hidden" name="back" value={listUrl} />

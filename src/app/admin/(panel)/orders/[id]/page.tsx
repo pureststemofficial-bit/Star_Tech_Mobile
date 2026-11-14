@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2 } from 'lucide-react';
+import { Download, FileText, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ActionForm, ConfirmButton, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
 import { PageHeader } from '@/components/admin/page-header';
@@ -27,7 +28,14 @@ export default async function OrderAdmin({ params }: { params: Promise<{ id: str
 
   return (
     <>
-      <PageHeader title={`Order #${order.order_number}`} description={`Placed ${formatDate(order.created_at, true)}`} back={{ href: '/admin/orders', label: 'All orders' }} />
+      <PageHeader title={`Order #${order.order_number}`} description={`Placed ${formatDate(order.created_at, true)}`} back={{ href: '/admin/orders', label: 'All orders' }}
+        actions={(
+          <div className="flex flex-wrap gap-2">
+            {/* Plain links: these are PDF downloads from a route handler, not app pages. */}
+            <Button asChild variant="white"><a href={`/admin/orders/${order.id}/invoice`} target="_blank" rel="noopener"><FileText /> View invoice</a></Button>
+            <Button asChild><a href={`/admin/orders/${order.id}/invoice?download=1`} download><Download /> Download invoice</a></Button>
+          </div>
+        )} />
       <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[1fr_340px]">
         <div className="grid gap-5">
           <Card>

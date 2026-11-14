@@ -278,3 +278,27 @@ test('deleting an order removes its items and returns unsent stock', async () =>
   assert.equal(removeOrder(999999), null);
   run('UPDATE products SET stock = ? WHERE id = ?', p.stock, p.id);
 });
+
+test('order invoices are well-formed PDFs, across pages and with Portuguese text', async () => {
+  const { invoicePdf } = await import('../src/lib/invoice.ts');
+  const order = {
+    id: 1, order_number: 'SM261115123456', user_id: null, email: 'ana@exemplo.pt', full_name: 'Ana Conceição', phone: '912345678',
+    line1: 'Rua São João, 5', line2: '', city: 'Póvoa de Varzim', postcode: '4490-001', notes: '', subtotal_pence: 123456,
+    delivery_pence: 450, total_pence: 123906, payment_method: 'Card (secure payment via Stripe)', payment_status: 'paid' as const,
+    stripe_session_id: '', status: 'processing' as const, tracking_number: '', created_at: '2026-11-15 10:00:00', updated_at: '2026-11-15 10:00:00',
+  };
+  const items = Array.from({ length: 40 }, (_, i) => ({
+    id: i, order_id: 1, product_id: null, name: `Capa de proteção nº ${i} (edição €special)`, variant: 'Azul', image: '', price_pence: 3086, qty: 1,
+  }));
+  const pdf = Buffer.from(invoicePdf(order, items, { name: 'Startech Mobile', address: 'Rua da República\nPortugal', phone: '1', email: 'a@b.pt', taxNumber: '123456789' }));
+  const text = pdf.toString('latin1');
+  assert.ok(text.startsWith('%PDF-1.4') && text.trimEnd().endsWith('%%EOF'));
+  assert.match(text, /\/Count [2-9]/, 'long orders run onto more pages');
+  assert.ok(text.includes('(SM261115123456)'));
+  assert.ok(text.includes(String.raw`Concei\347\343o`), 'accents use WinAnsi codes');
+  assert.ok(text.includes(String.raw`\200`), 'euro sign is WinAnsi 0x80');
+  // Every cross-reference entry must point exactly at its object.
+  const xrefAt = Number(text.match(/startxref\n(\d+)/)![1]);
+  const entries = text.slice(xrefAt).split('\n').filter((l) => / 00000 n $/.test(l)).map((l) => Number(l.slice(0, 10)));
+  entries.forEach((offset, i) => assert.ok(text.startsWith(`${i + 1} 0 obj`, offset), `object ${i + 1} offset`));
+});
