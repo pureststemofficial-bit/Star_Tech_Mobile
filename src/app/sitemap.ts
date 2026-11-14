@@ -6,7 +6,7 @@ import { siteUrl } from '@/lib/config';
 // Built on request, so products added in the admin panel appear straight away.
 export const dynamic = 'force-dynamic';
 
-/** Needs SITE_URL (e.g. https://www.yourshop.co.uk), since search engines require absolute links. */
+/** Needs SITE_URL (e.g. https://www.yourshop.pt), since search engines require absolute links. */
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteUrl()?.origin ?? 'http://localhost:3000';
   const fixed = ['', '/shop', '/repairs', '/blog', '/about', '/contact', '/delivery', '/returns', '/terms', '/privacy', '/faqs'];

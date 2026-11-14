@@ -15,7 +15,7 @@ type Spec = 'display' | 'chip' | 'camera' | 'storage' | 'ai' | 'updates' | 'port
 const SPEC_LABELS: Record<Spec, [string, string]> = {
   display: ['Display', 'Ecrã'], chip: ['Processor', 'Processador'], camera: ['Camera', 'Câmara'], storage: ['Storage', 'Armazenamento'],
   ai: ['Smart features', 'Funcionalidades inteligentes'], updates: ['Software updates', 'Atualizações de software'], port: ['Connector', 'Ligação'],
-  audio: ['Audio', 'Áudio'], anc: ['Noise cancelling', 'Cancelamento de ruído'], adaptive: ['Listening modes', 'Modos de audição'], case: ['Charging case', 'Estojo de carga'],
+  audio: ['Audio', 'Áudio'], anc: ['Noise cancelling', 'Cancelamento de ruído'], adaptive: ['Listening modes', 'Modos de audição'], case: ['Charging case', 'Estojo de carregamento'],
   battery: ['Battery life', 'Autonomia'], multipoint: ['Connectivity', 'Conectividade'], calls: ['Calls', 'Chamadas'], water: ['Water resistance', 'Resistência à água'],
   power: ['Performance', 'Desempenho'], ssd: ['Storage', 'Armazenamento'], graphics: ['Graphics', 'Gráficos'], grip: ['Grip', 'Pega'], dpad: ['D-pad', 'Direcional'],
   share: ['Sharing', 'Partilha'], wireless: ['Wireless', 'Sem fios'], sensor: ['Sensor', 'Sensor'], buttons: ['Buttons', 'Botões'], weights: ['Weight', 'Peso'],
@@ -70,11 +70,11 @@ const CATEGORIES: Record<string, [string, string]> = {
 };
 
 const PAGES: Record<string, [string, string, string]> = {
-  about: ['Sobre nós', 'O seu parceiro de tecnologia de confiança no Reino Unido', `A Startech Mobile é uma loja de eletrónica sediada no Reino Unido, com os mais recentes telemóveis, acessórios, equipamento de gaming, portáteis e serviços de reparação especializados.
+  about: ['Sobre nós', 'O seu parceiro de tecnologia de confiança em Portugal', `A Startech Mobile é uma loja de eletrónica sediada em Portugal, com os mais recentes telemóveis, acessórios, equipamento de gaming, portáteis e serviços de reparação especializados.
 
 Estamos empenhados em oferecer produtos genuínos, preços competitivos e um excelente serviço ao cliente, online e na loja.
 
-Os nossos técnicos reparam todos os dias telemóveis, tablets, portáteis e consolas, com peças de qualidade e a garantia das nossas reparações.`],
+Os nossos técnicos reparam todos os dias telemóveis, tablets, portáteis e consolas com peças de qualidade, e todas as reparações têm garantia.`],
   'about-why': ['Porquê escolher-nos?', '', `- Vasta gama das melhores marcas
 - Preços competitivos
 - Entrega rápida e fiável
@@ -87,7 +87,7 @@ Estes termos aplicam-se a todas as compras e marcações de reparação efetuada
 Todos os preços são apresentados em euros (EUR) e incluem IVA. Uma encomenda é aceite quando a confirmamos por email. Reservamo-nos o direito de cancelar encomendas em caso de falta de stock ou de erros de preço.
 
 ## 3. Entrega
-Entregamos em todo o Reino Unido. Os prazos de entrega estimados são apresentados na finalização da compra e não são garantidos.
+Entregamos em todo o território de Portugal. Os prazos de entrega estimados são apresentados na finalização da compra e não são garantidos.
 
 ## 4. Devoluções e reembolsos
 Pode devolver a maioria dos artigos no prazo de 14 dias após a entrega. Consulte a nossa política de Devoluções e Reembolsos para mais informações.
@@ -110,7 +110,7 @@ Recolhemos as informações que nos fornece ao criar uma conta, fazer uma encome
 As palavras-passe são guardadas com um método forte de hashing unidirecional. Os seus dados nunca são vendidos a terceiros.
 
 ## 4. Os seus direitos
-Ao abrigo do UK GDPR, pode pedir o acesso, a correção ou a eliminação dos seus dados pessoais em qualquer altura, contactando-nos.`],
+Ao abrigo do RGPD, pode pedir o acesso, a correção ou a eliminação dos seus dados pessoais em qualquer altura, contactando-nos.`],
   returns: ['Devoluções e Reembolsos', 'Devoluções em 14 dias, sem complicações', `## Devolver um artigo
 Pode devolver a maioria dos produtos no prazo de **14 dias** após a entrega e receber o reembolso total, desde que não tenham sido utilizados e estejam na embalagem original.
 
@@ -124,14 +124,14 @@ Os reembolsos são efetuados no método de pagamento original no prazo de 5 dias
 
 ## Artigos com defeito
 Se o seu artigo tiver defeito, contacte-nos e procederemos à reparação, substituição ou reembolso, de acordo com os seus direitos legais.`],
-  delivery: ['Informações de Entrega', 'Entrega rápida no Reino Unido', `## Entrega normal
+  delivery: ['Informações de Entrega', 'Entrega rápida em Portugal', `## Entrega normal
 Grátis em encomendas acima de 59,93 €. Caso contrário, aplica-se uma pequena taxa de entrega, indicada na finalização da compra.
 
 ## Prazos de entrega
 As encomendas feitas antes das 14h, de segunda a sexta-feira, são normalmente expedidas no próprio dia e entregues em 1 a 3 dias úteis.
 
 ## Levantamento em loja
-Também pode levantar a sua encomenda na nossa loja da Povoa de Santa Iria.`],
+Também pode levantar a sua encomenda na nossa loja da Póvoa de Santa Iria.`],
   faqs: ['Perguntas Frequentes', 'As dúvidas mais comuns', `## Os vossos produtos são genuínos?
 Sim. Todos os produtos que vendemos são novos e genuínos, salvo indicação clara em contrário.
 
@@ -148,7 +148,7 @@ Todas as reparações têm uma garantia de 90 dias em peças e mão de obra.`],
 const labelled = (specs: Spec[], features: string[], brand: string, lang: 0 | 1) => [
   `${lang ? 'Marca' : 'Brand'}: ${brand}`,
   ...specs.map((s, i) => `${SPEC_LABELS[s][lang]}: ${features[i]}`),
-  lang ? 'Garantia: 1 ano do fabricante' : 'Warranty: 1 year manufacturer',
+  lang ? 'Garantia: 1 ano (fabricante)' : 'Warranty: 1 year (manufacturer)',
 ].join('\n');
 
 export function applyContent({ get, run, tx }: Db) {
@@ -165,7 +165,7 @@ export function applyContent({ get, run, tx }: Db) {
              description_pt = CASE WHEN description_pt = '' THEN ? ELSE description_pt END,
              features_pt = CASE WHEN features_pt = '' THEN ? ELSE features_pt END,
              specs_pt = CASE WHEN specs_pt = '' THEN ? ELSE specs_pt END WHERE id = ?`,
-        name, short, `${short}\n\nDisponível agora na Startech Mobile, com entrega rápida no Reino Unido, devoluções em 14 dias e apoio especializado após a compra.`,
+        name, short, `${short}\n\nDisponível agora na Startech Mobile, com entrega rápida em Portugal, devoluções em 14 dias e apoio especializado após a compra.`,
         features.join('\n'), labelled(specs, features, p.brand, 1), p.id);
 
       // Swap the demo drawing for the photo, unless the admin has already uploaded their own.

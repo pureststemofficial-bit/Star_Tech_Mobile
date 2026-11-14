@@ -55,7 +55,7 @@ export async function Header() {
           <LanguageSwitch className="mr-1.5" />
           <Link href="/account" aria-label={user ? user.name.split(' ')[0] : t('head.account')} className={actionClass}><User /></Link>
           <Link href="/account/wishlist" aria-label={t('head.wishlist')} className={`${actionClass} max-sm:hidden`}><Heart /></Link>
-          <Link href="/cart" aria-label={`${t('head.basketAria', { n: cart.count })}, ${money(cart.total)}`} className={actionClass}>
+          <Link href="/cart" aria-label={`${t('head.basketAria', { items: cart.count === 1 ? t('basket.item') : t('basket.items', { n: cart.count }) })}, ${money(cart.total)}`} className={actionClass}>
             <ShoppingBag />
             {cart.count > 0 ? (
               <span key={cart.count} className="cart-pop absolute top-0.5 right-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-cobalt px-1 text-[11px] font-semibold">

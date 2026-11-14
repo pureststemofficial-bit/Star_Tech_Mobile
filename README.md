@@ -25,7 +25,7 @@ npm start                # http://localhost:3000   (development: npm run dev)
 On the first request the app creates `data/store.db` with a demo catalogue and an admin account, and prints the admin password **once** in the terminal. To choose your own, set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` before the first start, or at any time run:
 
 ```bash
-npm run create-admin -- you@yourshop.co.uk "a-long-passphrase-123"
+npm run create-admin -- you@yourshop.pt "a-long-passphrase-123"
 ```
 
 Admin panel: **/admin**

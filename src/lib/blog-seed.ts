@@ -120,7 +120,7 @@ GaN, or gallium nitride, is a material that lets chargers run cooler and be much
 
 ## Do not forget the cable
 A basic USB-C cable carries up to 60 W. For anything above that, such as a powerful laptop, you need a cable rated for **100 W or more**. For a phone, any good-quality cable will do.`,
-    body_pt: `Os conectores USB-C são todos iguais, mas os carregadores e os cabos não. São três os fatores que determinam se tem ou não carregamento rápido.
+    body_pt: `Os conectores USB-C parecem todos iguais, mas os carregadores e os cabos não. São três os fatores que determinam se tem ou não carregamento rápido.
 
 ## Verifique os watts
 A maioria dos telemóveis atinge a velocidade máxima entre 20 W e 45 W. Os tablets costumam precisar de um pouco mais e os portáteis normalmente precisam de 45 W a 100 W. Um carregador com mais watts do que o equipamento precisa é seguro, porque o equipamento só consome o que consegue usar. Muitas vezes, um único carregador de 65 W serve para o telemóvel e para o portátil.
@@ -176,7 +176,7 @@ O protetor fica com os riscos e os pequenos impactos que, de outra forma, marcar
 - Escolha um protetor compatível com capas, para que as extremidades não levantem
 - Substitua-o quando estiver partido, porque já cumpriu a sua função
 
-Se uma queda for mais forte do que a proteção, reparamos ecrãs, baterias e entradas de carga na loja.`,
+Se uma queda for mais forte do que a proteção, reparamos ecrãs, baterias e entradas de carregamento na loja.`,
     cta_href: '/shop?category=screen-protectors',
     cta_label: 'Shop screen protectors',
     cta_label_pt: 'Ver protetores de ecrã',

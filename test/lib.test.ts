@@ -177,7 +177,7 @@ test('a Stripe session settles an order once, whichever notice arrives first', a
 
 test('the switch to euros converts every kind of amount exactly once', () => {
   const version = () => Number(get<{ user_version: number }>('PRAGMA user_version')!.user_version);
-  assert.equal(version(), 3);
+  assert.equal(version(), 5);
   assert.equal(get<{ price_pence: number }>("SELECT price_pence FROM products WHERE slug = 'iphone-15-pro'")!.price_pence, Math.round(69900 * EUR_PER_GBP));
   assert.equal(euroOptions('128GB\n256GB|+100\n1TB|+£500'), '128GB\n256GB|+119.86\n1TB|+599.30');
   assert.equal(euroText('Free over £50, or £1,000.50'), 'Free over €59.93, or €1199.20');
@@ -195,4 +195,16 @@ test('real shop details replace the demo ones but never an admin edit', async ()
   assert.equal(value('phone'), SHOP_DETAILS.phone);
   assert.equal(value('email'), 'owner@shop.example');
   run(`DELETE FROM settings WHERE key IN ('phone', 'email')`);
+});
+
+test('old UK wording in the database is rewritten for Portugal', async () => {
+  const { applyPortugal } = await import('../src/lib/shop-details.ts');
+  run(`INSERT INTO settings (key, value) VALUES ('announcement', 'UK Based · Fast Delivery · Expert Repairs')`);
+  run(`UPDATE pages SET subtitle = 'Fast UK delivery', subtitle_pt = 'Entrega rápida no Reino Unido' WHERE slug = 'delivery'`);
+  applyPortugal({ run });
+  assert.equal(get<{ value: string }>("SELECT value FROM settings WHERE key = 'announcement'")!.value, 'Based in Portugal · Fast Delivery · Expert Repairs');
+  const page = get<{ subtitle: string; subtitle_pt: string }>("SELECT subtitle, subtitle_pt FROM pages WHERE slug = 'delivery'")!;
+  assert.deepEqual([page.subtitle, page.subtitle_pt], ['Fast delivery in Portugal', 'Entrega rápida em Portugal']);
+  assert.equal(get<{ n: number }>("SELECT COUNT(*) AS n FROM products WHERE description LIKE '%UK%' OR description_pt LIKE '%Reino Unido%'")!.n, 0);
+  run(`DELETE FROM settings WHERE key = 'announcement'`);
 });

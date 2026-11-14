@@ -75,11 +75,11 @@ const PRODUCTS: [string, string, string, number, number, number, string, unknown
 ];
 
 const PAGES: Record<string, [string, string, string]> = {
-  about: ['About Us', 'Your Trusted Tech Partner in the UK', `Startech Mobile is a UK based electronics store, offering the latest mobile phones, accessories, gaming gear, laptops and expert repair services.
+  about: ['About Us', 'Your Trusted Tech Partner in Portugal', `Startech Mobile is an electronics store based in Portugal, offering the latest mobile phones, accessories, gaming gear, laptops and expert repair services.
 
 We are committed to providing genuine products, competitive prices and excellent customer service — online and in store.
 
-Our certified technicians repair phones, tablets, laptops and consoles every day, using quality parts and backed by our repair warranty.`],
+Our certified technicians repair phones, tablets, laptops and consoles every day using quality parts, and every repair is backed by our warranty.`],
   'about-why': ['Why Choose Us?', '', `- Wide range of top brands
 - Competitive prices
 - Fast & reliable delivery
@@ -92,7 +92,7 @@ These terms apply to all purchases and repair bookings made with Startech Mobile
 All prices are shown in euros (EUR) and include VAT. An order is accepted when we confirm it by email. We reserve the right to cancel orders where stock is unavailable or pricing errors have occurred.
 
 ## 3. Delivery
-We deliver across the UK. Estimated delivery times are shown at checkout and are not guaranteed.
+We deliver across Portugal. Estimated delivery times are shown at checkout and are not guaranteed.
 
 ## 4. Returns and Refunds
 You may return most items within 14 days of delivery. See our Returns & Refunds policy for full details.
@@ -115,7 +115,7 @@ We collect the information you give us when you create an account, place an orde
 Passwords are stored using strong one-way hashing. Your data is never sold to third parties.
 
 ## 4. Your Rights
-Under UK GDPR you can request access to, correction of, or deletion of your personal data at any time by contacting us.`],
+Under the GDPR you can request access to, correction of, or deletion of your personal data at any time by contacting us.`],
   returns: ['Returns & Refunds', '14-day hassle-free returns', `## Returning an item
 You can return most products within **14 days** of delivery for a full refund, provided they are unused and in their original packaging.
 
@@ -129,14 +129,14 @@ Refunds are issued to your original payment method within 5 working days of us r
 
 ## Faulty items
 If your item is faulty, contact us and we will repair, replace or refund it in line with your statutory rights.`],
-  delivery: ['Delivery Information', 'Fast UK delivery', `## Standard delivery
+  delivery: ['Delivery Information', 'Fast delivery in Portugal', `## Standard delivery
 Free on orders over €59.93. Otherwise a small delivery charge applies, shown at checkout.
 
 ## Delivery times
 Orders placed before 2pm Monday to Friday are usually dispatched the same day and delivered within 1-3 working days.
 
 ## Click & collect
-You can also collect your order from our Povoa de Santa Iria store.`],
+You can also collect your order from our Póvoa de Santa Iria store.`],
   faqs: ['FAQs', 'Frequently asked questions', `## Are your products genuine?
 Yes. Every product we sell is brand new and genuine, unless clearly stated otherwise.
 
@@ -162,8 +162,8 @@ function seedCatalog({ run, tx }: Db) {
     });
     for (const [name, cat, brand, price, compare, stock, short, , features, colours, options, featured, sold] of PRODUCTS) {
       const slug = slugOf(name);
-      const specs = [`Brand: ${brand}`, ...features.split('\n').slice(0, 3).map((f, i) => `${['Highlight', 'Feature', 'Extra'][i]}: ${f}`), 'Warranty: 1 year manufacturer'].join('\n');
-      const description = `${short}\n\nThe ${name} is available now from Startech Mobile with fast UK delivery, 14-day returns and expert after-sales support.`;
+      const specs = [`Brand: ${brand}`, ...features.split('\n').slice(0, 3).map((f, i) => `${['Highlight', 'Feature', 'Extra'][i]}: ${f}`), 'Warranty: 1 year (manufacturer)'].join('\n');
+      const description = `${short}\n\nThe ${name} is available now from Startech Mobile with fast delivery in Portugal, 14-day returns and expert after-sales support.`;
       const r = run(`INSERT INTO products (name, slug, category_id, brand, price_pence, compare_pence, stock, short_desc, description,
                        features, specs, colours, options, is_featured, sold_count)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -177,7 +177,7 @@ function seedCatalog({ run, tx }: Db) {
 
 function seedAdmin({ get, run }: Db) {
   if (get("SELECT 1 AS x FROM users WHERE role = 'admin'")) return;
-  const email = (process.env.ADMIN_EMAIL || 'admin@startechmobile.co.uk').toLowerCase();
+  const email = (process.env.ADMIN_EMAIL || 'admin@startechmobile.pt').toLowerCase();
   const password = process.env.ADMIN_PASSWORD || crypto.randomBytes(12).toString('base64url');
   run(`INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'admin')
        ON CONFLICT(email) DO UPDATE SET role = 'admin'`, 'Administrator', email, hashPasswordSync(password));

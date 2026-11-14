@@ -57,7 +57,7 @@ export function parseOptions(text: string) {
 export function formatDate(sqlDate: string | null | undefined, withTime = false, locale: Locale = 'en'): string {
   if (!sqlDate) return '';
   const d = new Date(sqlDate.length === 10 ? sqlDate : sqlDate.replace(' ', 'T') + 'Z');
-  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London' };
+  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Lisbon' };
   if (withTime) Object.assign(opts, { hour: '2-digit', minute: '2-digit' });
   return d.toLocaleString(INTL_TAG[locale], opts);
 }

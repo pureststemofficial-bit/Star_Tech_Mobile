@@ -9,7 +9,7 @@ import type { Category } from './types.ts';
 const BASE = {
   site_name: 'Startech Mobile',
   tagline: 'Your Tech. Our Priority.',
-  announcement: 'UK Based · Fast Delivery · Expert Repairs',
+  announcement: 'Based in Portugal · Fast Delivery · Expert Repairs',
   hero_title: 'The tech you want.\nThe care it deserves.',
   hero_subtitle: 'Phones, laptops, gaming and accessories from the brands you trust, with expert repairs whenever you need them.',
   hero_button_text: 'Shop the collection',
@@ -24,7 +24,7 @@ const BASE = {
   repair_brands: 'Apple\nSamsung\nGoogle\nOnePlus\nXiaomi\nSony\nMicrosoft\nNintendo\nDell\nHP\nLenovo\nOther',
   repair_types: 'Screen Replacement\nBattery Replacement\nCharging Port Repair\nSoftware / Diagnostics\nWater Damage\nOther',
   repair_times: '09:00 - 11:00\n11:00 - 13:00\n13:00 - 15:00\n15:00 - 17:00\n17:00 - 19:00',
-  features: 'Free UK Delivery|On orders over €59.93\nSecure Checkout|Encrypted end to end\n14-Day Returns|Hassle free\nExpert Support|Here to help',
+  features: 'Free Delivery in Portugal|On orders over €59.93\nSecure Checkout|Encrypted end-to-end\n14-Day Returns|Hassle-free\nExpert Support|Here to help',
   ...SHOP_DETAILS,
   hours: 'Mon - Sat: 9:00 AM - 7:00 PM\nSun: 10:00 AM - 5:00 PM',
   // Blank hides the icon: add your real profile links in Admin -> Settings.
@@ -34,14 +34,14 @@ const BASE = {
   social_youtube: '',
   free_delivery_pence: '5993',
   delivery_fee_pence: '598',
-  payment_methods: 'Bank transfer (details emailed after ordering)\nPay on collection in store (card or cash)\nCash on delivery (London only)',
-  meta_description: 'Startech Mobile – latest phones, accessories, gaming, laptops and expert repairs. UK based with fast delivery.',
+  payment_methods: 'Bank transfer (details emailed after ordering)\nPay on collection in store (card or cash)\nCash on delivery (Lisbon area only)',
+  meta_description: 'Startech Mobile – latest phones, accessories, gaming, laptops and expert repairs. Based in Portugal with fast delivery.',
 };
 
 /** Portuguese defaults. Each is also editable, as `<key>_pt`, in Admin -> Settings. */
 const PORTUGUESE = {
   tagline_pt: 'A sua tecnologia. A nossa prioridade.',
-  announcement_pt: 'Sediados no Reino Unido · Entrega rápida · Reparações especializadas',
+  announcement_pt: 'Sediados em Portugal · Entrega rápida · Reparações especializadas',
   hero_title_pt: 'A tecnologia que quer.\nO cuidado que merece.',
   hero_subtitle_pt: 'Telemóveis, portáteis, gaming e acessórios das marcas em que confia, com reparações especializadas sempre que precisar.',
   hero_button_text_pt: 'Ver a coleção',
@@ -51,11 +51,11 @@ const PORTUGUESE = {
   repair_subtitle_pt: 'Rápido. Fiável. Profissional.',
   repair_text_pt: 'Receba o seu equipamento de volta em perfeito estado.',
   repair_device_types_pt: 'Telemóvel\nTablet\nPortátil\nConsola de jogos\nSmartwatch\nOutro',
-  repair_types_pt: 'Substituição de ecrã\nSubstituição de bateria\nReparação da entrada de carga\nSoftware / Diagnóstico\nDanos causados por água\nOutro',
-  features_pt: 'Entrega grátis no Reino Unido|Em encomendas acima de 59,93 €\nPagamento seguro|Encriptado do início ao fim\nDevoluções em 14 dias|Sem complicações\nApoio especializado|Sempre ao seu dispor',
+  repair_types_pt: 'Substituição de ecrã\nSubstituição de bateria\nReparação da entrada de carregamento\nSoftware / Diagnóstico\nDanos causados por água\nOutro',
+  features_pt: 'Entrega grátis em Portugal|Em encomendas acima de 59,93 €\nPagamento seguro|Encriptado do início ao fim\nDevoluções em 14 dias|Sem complicações\nApoio especializado|Sempre ao seu dispor',
   hours_pt: 'Seg. a sáb.: 9h00 - 19h00\nDom.: 10h00 - 17h00',
-  payment_methods_pt: 'Transferência bancária (dados enviados por email após a encomenda)\nPagamento no levantamento em loja (cartão ou numerário)\nPagamento na entrega (apenas Londres)',
-  meta_description_pt: 'Startech Mobile – os mais recentes telemóveis, acessórios, gaming, portáteis e reparações especializadas. Sediada no Reino Unido, com entrega rápida.',
+  payment_methods_pt: 'Transferência bancária (dados enviados por email após a encomenda)\nPagamento no levantamento em loja (cartão ou numerário)\nPagamento na entrega (apenas na zona de Lisboa)',
+  meta_description_pt: 'Startech Mobile – os mais recentes telemóveis, acessórios, gaming, portáteis e reparações especializadas. Sediada em Portugal, com entrega rápida.',
 };
 
 export const DEFAULTS = { ...BASE, ...PORTUGUESE };
