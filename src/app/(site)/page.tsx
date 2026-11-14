@@ -1,10 +1,12 @@
 import Link from 'next/link';
-import { ArrowRight, ArrowUpRight, Check, ChevronDown } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/site/container';
 import { SectionHeading } from '@/components/site/bits';
 import { ProductCarousel } from '@/components/site/product-card';
 import { Features } from '@/components/site/features';
+import { HeroCarousel } from '@/components/site/hero-carousel';
+import { heroSlides } from '@/lib/hero';
 import { localizedSettings, categories } from '@/lib/store';
 import { brandCounts, featured, newArrivals, popular } from '@/lib/catalog';
 import { getI18n } from '@/lib/i18n/server';
@@ -41,43 +43,41 @@ export default async function HomePage() {
   const site = localizedSettings(locale);
   const tiles = categories().filter((c) => c.show_on_home);
   const headline = site.hero_title.split('\n');
+  const found = heroSlides();
+  const slides = found.length ? found : [site.hero_image]; // empty folder: fall back to the admin's hero photo
   const popularItems = popular(12);
   const newItems = newArrivals(12);
   const brands = brandCounts().map((b) => b.brand).filter((b) => b !== 'Startech');
 
   return (
     <>
-      {/* Hero: the photograph bleeds under the header so the page opens as one dark surface. */}
-      <section aria-label={t('home.heroAria')} className="relative isolate flex min-h-[min(82svh,820px)] items-end overflow-hidden bg-ink text-white">
-        <div className="hero-parallax absolute inset-0 -z-20">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={site.hero_image}
-            srcSet={site.hero_image === '/img/photos/hero.webp' ? '/img/photos/hero-m.webp 1200w, /img/photos/hero.webp 2400w' : undefined}
-            sizes="100vw"
-            alt=""
-            width={2400}
-            height={1500}
-            fetchPriority="high"
-            decoding="async"
-            className="hero-settle size-full object-cover object-[70%_60%] opacity-90"
-          />
-        </div>
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-ink/35 to-ink/25 md:bg-gradient-to-r md:from-ink/95 md:via-ink/60 md:to-transparent" />
-        <Container className="pt-28 pb-14 md:pb-20">
-          <h1 className="font-display text-[clamp(3rem,8vw,7rem)] leading-[0.98]">
-            {headline.map((line, i) => (
-              <span key={i} className={cn('hero-rise block', i === headline.length - 1 && headline.length > 1 && 'text-sky italic')} style={{ '--i': i } as React.CSSProperties}>{line}</span>
-            ))}
-          </h1>
-          <p className="hero-rise mt-6 max-w-[34rem] text-base leading-relaxed text-white/85 md:text-lg" style={{ '--i': headline.length } as React.CSSProperties}>{site.hero_subtitle}</p>
-          <div className="hero-rise mt-8 flex flex-wrap gap-3" style={{ '--i': headline.length + 1 } as React.CSSProperties}>
-            <Button asChild size="lg" variant="light"><Link href={site.hero_button_link}>{site.hero_button_text} <ArrowRight /></Link></Button>
-            <Button asChild size="lg" variant="glass"><Link href="/repairs">{t('home.repairsCta')}</Link></Button>
+      {/* Hero: banner photos from public/hero_section_img crossfade behind the headline. */}
+      <HeroCarousel
+        slides={slides}
+        labels={{
+          region: t('home.heroAria'),
+          prev: t('home.heroPrev'),
+          next: t('home.heroNext'),
+          pause: t('home.heroPause'),
+          play: t('home.heroPlay'),
+          slide: t('home.heroSlide'),
+        }}
+      >
+        <Container className="py-9 md:py-16">
+          <div className="md:max-w-[min(34rem,46%)]">
+            <h1 className="font-display text-[clamp(2.5rem,5.6vw,5.5rem)] leading-[0.98]">
+              {headline.map((line, i) => (
+                <span key={i} className={cn('hero-rise block', i === headline.length - 1 && headline.length > 1 && 'text-primary italic')} style={{ '--i': i } as React.CSSProperties}>{line}</span>
+              ))}
+            </h1>
+            <p className="hero-rise mt-5 text-base leading-relaxed text-ink/75 md:text-lg" style={{ '--i': headline.length } as React.CSSProperties}>{site.hero_subtitle}</p>
+            <div className="hero-rise mt-7 flex flex-wrap gap-3 md:mb-10" style={{ '--i': headline.length + 1 } as React.CSSProperties}>
+              <Button asChild size="lg" variant="ink"><Link href={site.hero_button_link}>{site.hero_button_text} <ArrowRight /></Link></Button>
+              <Button asChild size="lg" variant="white"><Link href="/repairs">{t('home.repairsCta')}</Link></Button>
+            </div>
           </div>
-          <p className="mt-12 hidden items-center gap-2 text-xs text-white/70 md:flex"><ChevronDown className="nudge size-4" /> {t('home.scroll')}</p>
         </Container>
-      </section>
+      </HeroCarousel>
 
       <Container>
         <div className="border-b py-9"><Features /></div>
