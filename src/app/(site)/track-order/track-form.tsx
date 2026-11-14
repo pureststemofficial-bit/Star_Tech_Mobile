@@ -14,7 +14,7 @@ export function TrackForm() {
   return (
     <ActionForm
       action={trackOrder}
-      className="grid items-end gap-4 sm:grid-cols-[1fr_1fr_auto]"
+      className="grid gap-4"
       render={(state) => {
         const data = state.data as { order: Order; items: OrderItem[]; paymentLabel: string } | undefined;
         return data ? (
@@ -25,9 +25,12 @@ export function TrackForm() {
         ) : null;
       }}
     >
-      <Field label={t('track.number')} htmlFor="number"><Input id="number" name="number" placeholder="SM241027123456" required maxLength={30} /></Field>
-      <Field label={t('form.email')} htmlFor="email"><Input id="email" name="email" type="email" required maxLength={254} /></Field>
-      <SubmitButton variant="ink">{t('track.submit')}</SubmitButton>
+      {/* Fields sit in their own grid so an error message above them spans the full width. */}
+      <div className="grid items-end gap-4 sm:grid-cols-[1fr_1fr_auto]">
+        <Field label={t('track.number')} htmlFor="number"><Input id="number" name="number" placeholder="SM261114123456" autoComplete="off" required maxLength={40} /></Field>
+        <Field label={t('form.email')} htmlFor="email"><Input id="email" name="email" type="email" autoComplete="email" required maxLength={254} /></Field>
+        <SubmitButton variant="ink">{t('track.submit')}</SubmitButton>
+      </div>
     </ActionForm>
   );
 }

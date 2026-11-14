@@ -73,9 +73,11 @@ export async function bookRepair(_prev: FormState, formData: FormData): Promise<
 /** Guest order tracking: needs both the order number and the email used at checkout. */
 export async function trackOrder(_prev: FormState, formData: FormData): Promise<FormState> {
   const { t, locale } = await getI18n();
-  const limited = await rateLimit('forms');
+  const limited = await rateLimit('track');
   if (limited) return { errors: [limited] };
-  const number = str(formData.get('number'), 30).toUpperCase();
+  // Accept the number however it was copied: "#SM261114804060", "sm 2611 1480 4060" or just the digits.
+  let number = str(formData.get('number'), 40).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (/^\d+$/.test(number)) number = `SM${number}`;
   const email = str(formData.get('email'), 254).toLowerCase();
   const order = get<Order>('SELECT * FROM orders WHERE order_number = ? AND email = ?', number, email);
   if (!order) return { errors: [t('msg.orderNotFound')] };

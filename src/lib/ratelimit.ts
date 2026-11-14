@@ -15,6 +15,8 @@ const RULES = {
   login: { windowMs: 15 * 60_000, limit: 10, message: 'rate.login' },
   register: { windowMs: 60 * 60_000, limit: 10, message: 'rate.register' },
   forms: { windowMs: 10 * 60_000, limit: 8, message: 'rate.forms' },
+  // Order tracking has its own allowance: retrying a mistyped number shouldn't block other forms.
+  track: { windowMs: 10 * 60_000, limit: 20, message: 'rate.track' },
   checkout: { windowMs: 10 * 60_000, limit: 15, message: 'rate.checkout' },
   cart: { windowMs: 60_000, limit: 60, message: 'rate.cart' },
 } as const;
