@@ -17,6 +17,8 @@ const CATEGORIES = [
   { slug: 'chargers-cables', name: 'Chargers & Cables', nav: '', inNav: 0, home: 0, art: ['cable', {}] },
   { slug: 'mobile-covers', name: 'Mobile Covers', nav: '', inNav: 0, home: 0, art: ['case', {}] },
   { slug: 'screen-protectors', name: 'Screen Protectors', nav: '', inNav: 0, home: 0, art: ['protector', {}] },
+  { slug: 'car-accessories', name: 'Car Accessories', nav: '', inNav: 0, home: 1, art: ['charger', { color: '#2b2f38' }] },
+  { slug: 'speakers', name: 'Speakers', nav: '', inNav: 0, home: 1, art: ['speaker', {}] },
   { slug: 'others', name: 'Others', nav: '', inNav: 0, home: 0, art: ['watch', {}] },
 ];
 
@@ -68,9 +70,9 @@ const PRODUCTS: [string, string, string, number, number, number, string, unknown
     'S9 SiP chip\nDouble tap gesture\nAlways-on Retina display', 'Midnight|#2e3642\nStarlight|#e3dccb', '41mm\n45mm|+30', 0, 22],
   ['Samsung Galaxy Tab S9', 'others', 'Samsung', 699, 799, 6, 'Dynamic AMOLED 2X tablet with S Pen included.', ['tablet', {}],
     '11" Dynamic AMOLED 2X\nS Pen included\nIP68 water resistance', '', '128GB\n256GB|+100', 0, 9],
-  ['JBL Flip 6 Speaker', 'accessories', 'JBL', 99.99, 129.99, 20, 'Bold sound for every adventure. Waterproof and dustproof.', ['speaker', {}],
+  ['JBL Flip 6 Speaker', 'speakers', 'JBL', 99.99, 129.99, 20, 'Bold sound for every adventure. Waterproof and dustproof.', ['speaker', {}],
     'IP67 waterproof\n12 hours playtime\nPartyBoost', 'Black|#1b1d22\nBlue|#1e63ff\nRed|#e5484d', '', 0, 35],
-  ['Magnetic Car Mount', 'accessories', 'Belkin', 19.99, 0, 70, 'Secure MagSafe car vent mount.', ['charger', { color: '#2b2f38' }],
+  ['Magnetic Car Mount', 'car-accessories', 'Belkin', 19.99, 0, 70, 'Secure MagSafe car vent mount.', ['charger', { color: '#2b2f38' }],
     'MagSafe compatible\nAdjustable angle\nVent clip', '', '', 0, 41],
 ];
 

@@ -11,6 +11,21 @@ import { getI18n } from '@/lib/i18n/server';
 import { pick } from '@/lib/i18n/config';
 import { cn } from '@/lib/utils';
 
+/*
+ * The first category is a 2x2 feature tile; the rest fill single cells. Tiles in an unfinished
+ * last row are widened so the grid always ends flush, whatever the admin shows on the home page.
+ */
+const LG_LAST_ROW = ['', 'lg:col-span-4', 'lg:col-span-2', 'lg:col-span-2'];
+function tileSpan(i: number, count: number) {
+  if (i === 0) return 'col-span-2 row-span-2';
+  const small = count - 1; // tiles after the feature tile
+  const fromEnd = small - i; // 0 for the last tile
+  const narrow = small % 2 === 1 && fromEnd === 0 ? 'col-span-2 lg:col-span-1' : ''; // 2-column layout
+  const lgLeft = small > 4 ? (small - 4) % 4 : 0; // tiles in the last 4-column row, below the feature tile
+  const wide = lgLeft === 3 ? fromEnd === 0 : fromEnd < lgLeft; // 3 left: widen only the last one
+  return cn(narrow, wide && LG_LAST_ROW[lgLeft]);
+}
+
 export default async function HomePage() {
   const { t, locale } = await getI18n();
   const site = localizedSettings(locale);
@@ -60,7 +75,7 @@ export default async function HomePage() {
           <nav aria-label={t('home.catTitle')} className="grid auto-rows-[46vw] grid-cols-2 gap-3 sm:auto-rows-[260px] sm:gap-4 lg:grid-cols-4">
             {tiles.map((c, i) => (
               <Link key={c.id} href={`/shop?category=${c.slug}`}
-                className={cn('tile reveal group relative isolate overflow-hidden rounded-[1.5rem] bg-ink text-white', i === 0 && 'col-span-2 row-span-2')}>
+                className={cn('tile reveal group relative isolate overflow-hidden rounded-[1.5rem] bg-ink text-white', tileSpan(i, tiles.length))}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={c.image || '/img/products/placeholder.svg'} alt="" width={1000} height={1000} loading="lazy" decoding="async" className="tile-img absolute inset-0 -z-20 size-full object-cover" />
                 <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-ink/85 via-ink/15 to-transparent" />

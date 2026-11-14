@@ -5,7 +5,7 @@ import type { Db } from './db.ts';
  * tables. It runs once per database (tracked by `content_version`) and only touches values that
  * are still the original demo ones, so anything edited in the admin panel is left alone.
  */
-const CONTENT_VERSION = '2';
+const CONTENT_VERSION = '4';
 
 type Spec = 'display' | 'chip' | 'camera' | 'storage' | 'ai' | 'updates' | 'port' | 'audio' | 'anc' | 'adaptive' | 'case' | 'battery' | 'multipoint' | 'calls'
   | 'water' | 'power' | 'ssd' | 'graphics' | 'grip' | 'dpad' | 'share' | 'wireless' | 'sensor' | 'buttons' | 'weights' | 'lighting' | 'switches' | 'polling'
@@ -66,6 +66,8 @@ const CATEGORIES: Record<string, [string, string]> = {
   'chargers-cables': ['Carregadores e cabos', ''],
   'mobile-covers': ['Capas para telemóvel', ''],
   'screen-protectors': ['Protetores de ecrã', ''],
+  'car-accessories': ['Acessórios para automóvel', ''],
+  speakers: ['Colunas', ''],
   others: ['Outros', ''],
 };
 
@@ -174,6 +176,21 @@ export function applyContent({ get, run, tx }: Db) {
       for (let n = 2; changed && n <= (GALLERY[slug] ?? 1); n++) {
         run('INSERT INTO product_images (product_id, path, thumb, sort_order) VALUES (?, ?, ?, ?)', p.id, `/img/products/${slug}-${n}.webp`, `/img/products/${slug}-${n}-t.webp`, n - 1);
       }
+    }
+    // Categories added after the first release: create them in older databases (just before "Others")
+    // and move their demo products out of Accessories, unless the admin has already re-filed them.
+    for (const [slug, name, product] of [['car-accessories', 'Car Accessories', 'magnetic-car-mount'], ['speakers', 'Speakers', 'jbl-flip-6-speaker']]) {
+      if (get('SELECT 1 AS x FROM categories WHERE slug = ?', slug)) continue;
+      const others = get<{ sort_order: number }>("SELECT sort_order FROM categories WHERE slug = 'others'");
+      if (others) run("UPDATE categories SET sort_order = sort_order + 1 WHERE slug = 'others'");
+      const order = others?.sort_order ?? (get<{ n: number }>('SELECT COALESCE(MAX(sort_order), -1) + 1 AS n FROM categories')!).n;
+      const id = run("INSERT INTO categories (name, slug, image, sort_order, show_in_nav, show_on_home, nav_label) VALUES (?, ?, ?, ?, 0, 1, '')",
+        name, slug, `/img/products/cat-${slug}.webp`, order).lastInsertRowid;
+      run("UPDATE products SET category_id = ? WHERE slug = ? AND category_id = (SELECT id FROM categories WHERE slug = 'accessories')", id, product);
+    }
+    // Version 3 created them hidden from the home page; version 4 shows them there.
+    if (get("SELECT 1 AS x FROM settings WHERE key = 'content_version' AND value = '3'")) {
+      run("UPDATE categories SET show_on_home = 1 WHERE slug IN ('car-accessories', 'speakers')");
     }
     for (const [slug, [name, nav]] of Object.entries(CATEGORIES)) {
       run(`UPDATE categories SET name_pt = CASE WHEN name_pt = '' THEN ? ELSE name_pt END,

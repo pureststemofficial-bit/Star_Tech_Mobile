@@ -40,6 +40,8 @@ The licence covers the photograph only. It does not grant rights over the tradem
 | category: chargers-cables | Decorative | https://images.unsplash.com/photo-1615526675159-e248c3021d3f |
 | category: mobile-covers | Decorative | https://images.unsplash.com/photo-1603313011101-320f26a4f6f6 |
 | category: screen-protectors | Decorative | https://images.unsplash.com/photo-1585060544812-6b45742d762f |
+| category: car-accessories | Decorative | https://images.unsplash.com/photo-1449965408869-eaa3f722e40d |
+| category: speakers | Decorative | https://images.unsplash.com/photo-1608043152269-423dbba4e7e1 |
 | category: others | Decorative | https://images.unsplash.com/photo-1579586337278-3befd40fd17a |
 | scene: hero | Decorative | https://images.unsplash.com/photo-1531297484001-80022131f5a1 |
 | scene: repairs | Decorative | https://images.unsplash.com/photo-1563770660941-20978e870e26 |
