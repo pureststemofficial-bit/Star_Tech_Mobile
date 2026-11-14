@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,6 @@ import { PageHeader } from '@/components/admin/page-header';
 import { saveSettings } from '@/actions/admin';
 import { requireAdmin } from '@/lib/auth';
 import { settings, type SettingKey } from '@/lib/store';
-import { fromPence } from '@/lib/format';
 
 export const metadata: Metadata = { title: 'Site settings' };
 
@@ -60,11 +60,8 @@ export default async function SettingsAdmin() {
             {text('shop_title', 'Shop banner title')}
             {text('shop_subtitle', 'Shop banner subtitle')}
           </>)}
-          {section('Delivery & payment', <>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Free delivery over (€)" htmlFor="free_delivery" hint="0 = never free"><Input id="free_delivery" name="free_delivery" inputMode="decimal" defaultValue={fromPence(Number(s.free_delivery_pence))} /></Field>
-              <Field label="Delivery charge (€)" htmlFor="delivery_fee"><Input id="delivery_fee" name="delivery_fee" inputMode="decimal" defaultValue={fromPence(Number(s.delivery_fee_pence))} /></Field>
-            </div>
+          {section('Payment', <>
+            <p className="text-sm text-muted-foreground">Delivery charges are set by city in <Link href="/admin/delivery" className="font-medium text-primary hover:underline">Delivery</Link>.</p>
             {area('payment_methods', 'Payment options at checkout', 'One per line.', 4)}
           </>)}
           {section('Repair booking', <>

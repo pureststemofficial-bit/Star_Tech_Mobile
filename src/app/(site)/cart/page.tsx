@@ -10,6 +10,7 @@ import { ProductGrid } from '@/components/site/product-card';
 import { SectionHeading } from '@/components/site/bits';
 import { readSession } from '@/lib/session';
 import { summary } from '@/lib/cart';
+import { settings } from '@/lib/store';
 import { featured } from '@/lib/catalog';
 import { getI18n, titled } from '@/lib/i18n/server';
 import { pick } from '@/lib/i18n/config';
@@ -19,6 +20,9 @@ export const generateMetadata = titled('basket.title');
 export default async function CartPage() {
   const { t, locale, money } = await getI18n();
   const cart = summary((await readSession())?.data);
+  // Delivery depends on the city chosen at checkout, unless the basket already qualifies for free delivery.
+  const freeOver = settings().freeDeliveryPence;
+  const freeDelivery = freeOver > 0 && cart.subtotal >= freeOver;
   const inCart = new Set(cart.lines.map((l) => l.product.id));
   const suggestions = featured(12).filter((p) => !inCart.has(p.id)).slice(0, 4);
 
@@ -61,11 +65,11 @@ export default async function CartPage() {
             <CardHeader><CardTitle>{t('basket.summary')}</CardTitle></CardHeader>
             <CardContent className="grid gap-2 text-sm">
               <Row label={t('order.subtotal')} value={money(cart.subtotal)} />
-              <Row label={t('order.delivery')} value={cart.delivery ? money(cart.delivery) : t('order.free')} />
+              <Row label={t('order.delivery')} value={freeDelivery ? t('order.free') : <span className="text-muted-foreground">{t('basket.deliveryAtCheckout')}</span>} />
               {cart.freeDeliveryRemaining > 0 ? (
                 <Alert className="my-1"><AlertDescription>{t('basket.addMore', { amount: money(cart.freeDeliveryRemaining) })}</AlertDescription></Alert>
               ) : null}
-              <Row label={t('order.total')} value={money(cart.total)} strong />
+              <Row label={t('order.subtotal')} value={money(cart.subtotal)} strong />
               <Button asChild size="lg" variant="ink" className="mt-3 w-full"><Link href="/checkout">{t('basket.checkout')} <ArrowRight /></Link></Button>
               <ul className="mt-4 grid gap-3">
                 <li className="flex gap-3"><Lock className="size-5 shrink-0 stroke-[1.5] text-primary" /><div><strong className="font-medium">{t('basket.secure')}</strong><p className="text-muted-foreground">{t('basket.secureSub')}</p></div></li>

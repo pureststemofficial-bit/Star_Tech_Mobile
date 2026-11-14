@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { refresh } from 'next/cache';
 import { get, run, tx } from '@/lib/db';
 import * as cart from '@/lib/cart';
+import { cityFee } from '@/lib/delivery';
 import { CARD_METHOD, siteUrl } from '@/lib/config';
 import { createCheckoutSession, releaseOrder } from '@/lib/payments';
 import { localizedOptions, invalidate } from '@/lib/store';
@@ -57,8 +58,7 @@ export async function updateCartLine(formData: FormData): Promise<void> {
 export async function placeOrder(_prev: FormState, formData: FormData): Promise<FormState> {
   const { t, locale } = await getI18n();
   const session = await readSession();
-  const summary = cart.summary(session?.data);
-  if (!summary.lines.length) redirect('/cart');
+  if (!cart.summary(session?.data).lines.length) redirect('/cart');
 
   const limited = await rateLimit('checkout');
   if (limited) return { errors: [limited] };
@@ -74,12 +74,15 @@ export async function placeOrder(_prev: FormState, formData: FormData): Promise<
     .require(form.full_name.length >= 2, t('v.fullName'))
     .require(isPhone(form.phone), t('v.phone'))
     .require(form.line1.length >= 3, t('v.address'))
-    .require(form.city.length >= 2, t('v.city'))
+    .require(cityFee(form.city) !== undefined, t('v.deliveryCity'))
     .require(isPostcode(form.postcode), t('v.postcode'))
     .require(methods.includes(form.payment_method), t('v.paymentMethod'))
     .require(formData.get('agree') === 'on', t('v.terms'));
   if (!v.ok) return { errors: v.errors };
 
+  // Delivery is charged for the chosen city, worked out here rather than trusted from the page.
+  const summary = cart.summary(session?.data, form.city);
+  if (!summary.lines.length) redirect('/cart');
   const user = await currentUser();
   let orderNumber: string;
   try {

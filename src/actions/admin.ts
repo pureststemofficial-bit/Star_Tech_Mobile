@@ -368,6 +368,32 @@ const URL_KEYS = ['social_facebook', 'social_instagram', 'social_tiktok', 'socia
 const safeUrl = (v: string) => v === '' || /^https:\/\/[^\s"'<>]+$/i.test(v);
 const safeLink = (v: string) => /^\/(?!\/)[^\s"'<>]*$/.test(v) || safeUrl(v);
 
+/* ---------- Delivery ---------- */
+
+export async function saveDeliveryFees(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const errors: string[] = [];
+  const amount = (field: string, label: string, blank: number | null) => {
+    const raw = str(formData.get(field), 20);
+    if (raw === '') return blank;
+    const p = toPence(raw);
+    if (p === null) errors.push(`${label}: “${raw}” is not a valid amount.`);
+    return p;
+  };
+  const defaultFee = amount('default_fee', 'Default delivery charge', 0);
+  const freeOver = amount('free_over', 'Free delivery over', 0);
+  const cities = all<{ id: number; name: string }>('SELECT id, name FROM delivery_cities');
+  const fees = cities.map((c) => [amount(`fee_${c.id}`, c.name, null), c.id] as const);
+  if (errors.length) return { errors: errors.length > 5 ? [...errors.slice(0, 5), `…and ${errors.length - 5} more.`] : errors };
+
+  tx(() => {
+    for (const [fee, id] of fees) run('UPDATE delivery_cities SET fee_pence = ? WHERE id = ?', fee, id);
+  });
+  store.saveSettings({ delivery_fee_pence: String(defaultFee), free_delivery_pence: String(freeOver) });
+  refresh();
+  return { ok: true, message: 'Delivery charges saved.', at: Date.now() };
+}
+
 export async function saveSettings(_prev: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
   const values: Partial<Record<store.SettingKey, string>> = {};

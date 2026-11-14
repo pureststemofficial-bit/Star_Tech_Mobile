@@ -24,7 +24,7 @@ const BASE = {
   repair_brands: 'Apple\nSamsung\nGoogle\nOnePlus\nXiaomi\nSony\nMicrosoft\nNintendo\nDell\nHP\nLenovo\nOther',
   repair_types: 'Screen Replacement\nBattery Replacement\nCharging Port Repair\nSoftware / Diagnostics\nWater Damage\nOther',
   repair_times: '09:00 - 11:00\n11:00 - 13:00\n13:00 - 15:00\n15:00 - 17:00\n17:00 - 19:00',
-  features: 'Free Delivery in Portugal|On orders over €59.93\nSecure Checkout|Encrypted end-to-end\n14-Day Returns|Hassle-free\nExpert Support|Here to help',
+  features: 'Fast Delivery in Portugal|Same-day dispatch before 2pm\nSecure Checkout|Encrypted end-to-end\n14-Day Returns|Hassle-free\nExpert Support|Here to help',
   ...SHOP_DETAILS,
   hours: 'Mon - Sat: 9:00 AM - 7:00 PM\nSun: 10:00 AM - 5:00 PM',
   // Blank hides the icon: add your real profile links in Admin -> Settings.
@@ -32,9 +32,9 @@ const BASE = {
   social_instagram: '',
   social_tiktok: '',
   social_youtube: '',
-  free_delivery_pence: '5993',
+  free_delivery_pence: '0', // 0 = delivery is always charged
   delivery_fee_pence: '598',
-  payment_methods: 'Bank transfer (details emailed after ordering)\nPay on collection in store (card or cash)\nCash on delivery (Lisbon area only)',
+  payment_methods: 'Pay on collection in store (card or cash)',
   meta_description: 'Startech Mobile – latest phones, accessories, gaming, laptops and expert repairs. Based in Portugal with fast delivery.',
 };
 
@@ -52,9 +52,9 @@ const PORTUGUESE = {
   repair_text_pt: 'Receba o seu equipamento de volta em perfeito estado.',
   repair_device_types_pt: 'Telemóvel\nTablet\nPortátil\nConsola de jogos\nSmartwatch\nOutro',
   repair_types_pt: 'Substituição de ecrã\nSubstituição de bateria\nReparação da entrada de carregamento\nSoftware / Diagnóstico\nDanos causados por água\nOutro',
-  features_pt: 'Entrega grátis em Portugal|Em encomendas acima de 59,93 €\nPagamento seguro|Encriptado do início ao fim\nDevoluções em 14 dias|Sem complicações\nApoio especializado|Sempre ao seu dispor',
+  features_pt: 'Entrega rápida em Portugal|Expedição no próprio dia até às 14h\nPagamento seguro|Encriptado do início ao fim\nDevoluções em 14 dias|Sem complicações\nApoio especializado|Sempre ao seu dispor',
   hours_pt: 'Seg. a sáb.: 9h00 - 19h00\nDom.: 10h00 - 17h00',
-  payment_methods_pt: 'Transferência bancária (dados enviados por email após a encomenda)\nPagamento no levantamento em loja (cartão ou numerário)\nPagamento na entrega (apenas na zona de Lisboa)',
+  payment_methods_pt: 'Pagamento no levantamento em loja (cartão ou numerário)',
   meta_description_pt: 'Startech Mobile – os mais recentes telemóveis, acessórios, gaming, portáteis e reparações especializadas. Sediada em Portugal, com entrega rápida.',
 };
 
@@ -71,6 +71,9 @@ export type Settings = Record<SettingKey, string> & {
 type Cache = { settings: Settings | null; categories: Category[] | null };
 const g = globalThis as typeof globalThis & { __startechStore?: Cache };
 const cache: Cache = (g.__startechStore ??= { settings: null, categories: null });
+// Start fresh whenever this module (re)loads, so edited defaults show up after a dev hot reload.
+cache.settings = null;
+cache.categories = null;
 
 export const isSettingKey = (k: string): k is SettingKey => Object.hasOwn(DEFAULTS, k);
 

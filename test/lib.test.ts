@@ -177,7 +177,7 @@ test('a Stripe session settles an order once, whichever notice arrives first', a
 
 test('the switch to euros converts every kind of amount exactly once', () => {
   const version = () => Number(get<{ user_version: number }>('PRAGMA user_version')!.user_version);
-  assert.equal(version(), 5);
+  assert.equal(version(), 6);
   assert.equal(get<{ price_pence: number }>("SELECT price_pence FROM products WHERE slug = 'iphone-15-pro'")!.price_pence, Math.round(69900 * EUR_PER_GBP));
   assert.equal(euroOptions('128GB\n256GB|+100\n1TB|+£500'), '128GB\n256GB|+119.86\n1TB|+599.30');
   assert.equal(euroText('Free over £50, or £1,000.50'), 'Free over €59.93, or €1199.20');
@@ -207,4 +207,49 @@ test('old UK wording in the database is rewritten for Portugal', async () => {
   assert.deepEqual([page.subtitle, page.subtitle_pt], ['Fast delivery in Portugal', 'Entrega rápida em Portugal']);
   assert.equal(get<{ n: number }>("SELECT COUNT(*) AS n FROM products WHERE description LIKE '%UK%' OR description_pt LIKE '%Reino Unido%'")!.n, 0);
   run(`DELETE FROM settings WHERE key = 'announcement'`);
+});
+
+test('free delivery is withdrawn, so every order pays the delivery fee', async () => {
+  const { removeFreeDelivery } = await import('../src/lib/shop-details.ts');
+  assert.equal(store.settings().freeDeliveryPence, 0);
+  run(`INSERT INTO settings (key, value) VALUES ('free_delivery_pence', '5993'), ('features', 'Free Delivery in Portugal|On orders over €59.93\nExpert Support|Here to help')`);
+  run(`UPDATE pages SET body = 'Free on orders over €59.93. Otherwise a small delivery charge applies, shown at checkout.' WHERE slug = 'delivery'`);
+  removeFreeDelivery({ run });
+  store.invalidate();
+  assert.equal(store.settings().freeDeliveryPence, 0);
+  assert.equal(store.settings().features, 'Fast Delivery in Portugal|Same-day dispatch before 2pm\nExpert Support|Here to help');
+  assert.equal(get<{ body: string }>("SELECT body FROM pages WHERE slug = 'delivery'")!.body, 'A delivery charge applies to every order and is shown at checkout.');
+  run(`DELETE FROM settings WHERE key IN ('free_delivery_pence', 'features')`);
+  store.invalidate();
+});
+
+test('delivery is charged by the city the customer chooses', async () => {
+  const { cityFee, deliveryCities } = await import('../src/lib/delivery.ts');
+  const { PORTUGAL_DISTRICTS } = await import('../src/lib/portugal.ts');
+  const { deliveryCharge } = await import('../src/lib/delivery-charge.ts');
+  const listed = PORTUGAL_DISTRICTS.flatMap(([, cities]) => cities);
+  assert.equal(listed.length, 308, 'all 308 municipalities');
+  assert.equal(new Set(listed).size, 308, 'names are unique');
+  assert.equal(deliveryCities().length, 308);
+
+  const fallback = store.settings().deliveryFeePence;
+  assert.equal(cityFee('Lisboa'), fallback, 'no charge of its own -> default');
+  run("UPDATE delivery_cities SET fee_pence = 350 WHERE name = 'Lisboa'");
+  run("UPDATE delivery_cities SET fee_pence = 0 WHERE name = 'Vila Franca de Xira'");
+  assert.equal(cityFee('Lisboa'), 350);
+  assert.equal(cityFee('Vila Franca de Xira'), 0);
+  assert.equal(cityFee('London'), undefined, 'unlisted places are refused');
+
+  const p = get<{ id: number; price_pence: number; colours: string; options: string; stock: number; name: string }>("SELECT * FROM products WHERE slug = 'iphone-15'")!;
+  const session = {} as Parameters<typeof cart.summary>[0] & object;
+  cart.add(session, p, { qty: 1 });
+  assert.equal(cart.summary(session, 'Lisboa').delivery, 350);
+  assert.equal(cart.summary(session, 'Vila Franca de Xira').delivery, 0);
+  assert.equal(cart.summary(session, 'Porto').delivery, fallback);
+  assert.equal(cart.summary(session).delivery, fallback);
+
+  assert.equal(deliveryCharge(0, 500, 0), 0, 'empty basket');
+  assert.equal(deliveryCharge(1000, 500, 1000), 0, 'free-delivery threshold still wins');
+  assert.equal(deliveryCharge(999, 500, 1000), 500);
+  run('UPDATE delivery_cities SET fee_pence = NULL');
 });

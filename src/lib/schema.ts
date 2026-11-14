@@ -197,6 +197,15 @@ CREATE TABLE IF NOT EXISTS blog_posts (
 );
 CREATE INDEX IF NOT EXISTS idx_blog_listing ON blog_posts(is_active, published);
 
+-- Places customers can choose at checkout. fee_pence NULL means "use the default delivery charge".
+CREATE TABLE IF NOT EXISTS delivery_cities (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  name       TEXT NOT NULL UNIQUE,
+  district   TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  fee_pence  INTEGER
+);
+
 CREATE TABLE IF NOT EXISTS settings (
   key   TEXT PRIMARY KEY,
   value TEXT NOT NULL

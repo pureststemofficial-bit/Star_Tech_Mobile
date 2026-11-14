@@ -137,7 +137,7 @@ export default async function ProductPage({ params }: { params: Params }) {
 
           <div className="grid gap-4 border-t pt-6 sm:grid-cols-3">
             {[
-              { Icon: Truck, title: t('product.perkDelivery'), sub: t('product.perkDeliverySub', { amount: money(site.freeDeliveryPence) }) },
+              { Icon: Truck, title: t('product.perkDelivery'), sub: t('product.perkDeliverySub') },
               { Icon: RotateCcw, title: t('product.perkReturns'), sub: t('product.perkReturnsSub') },
               { Icon: ShieldCheck, title: t('product.perkWarranty'), sub: t('product.perkWarrantySub') },
             ].map(({ Icon, title, sub }) => (

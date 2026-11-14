@@ -127,7 +127,7 @@ Os reembolsos são efetuados no método de pagamento original no prazo de 5 dias
 ## Artigos com defeito
 Se o seu artigo tiver defeito, contacte-nos e procederemos à reparação, substituição ou reembolso, de acordo com os seus direitos legais.`],
   delivery: ['Informações de Entrega', 'Entrega rápida em Portugal', `## Entrega normal
-Grátis em encomendas acima de 59,93 €. Caso contrário, aplica-se uma pequena taxa de entrega, indicada na finalização da compra.
+Aplica-se uma taxa de entrega a todas as encomendas, indicada na finalização da compra.
 
 ## Prazos de entrega
 As encomendas feitas antes das 14h, de segunda a sexta-feira, são normalmente expedidas no próprio dia e entregues em 1 a 3 dias úteis.

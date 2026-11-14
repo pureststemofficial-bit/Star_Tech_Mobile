@@ -5,7 +5,7 @@ import { dbFile } from './config.ts';
 import { ADDED_COLUMNS, SCHEMA } from './schema.ts';
 import { seed } from './seed.ts';
 import { convertToEuro } from './euro.ts';
-import { applyPortugal, applyShopDetails, applyWording } from './shop-details.ts';
+import { applyPortugal, applyShopDetails, applyWording, removeFreeDelivery } from './shop-details.ts';
 import { seedBlog } from './blog-seed.ts';
 
 /*
@@ -42,13 +42,14 @@ function state(): DbState {
   // Checked inside the write lock so two processes starting together can't both convert.
   tx(() => {
     const { user_version } = conn.prepare('PRAGMA user_version').get() as { user_version: number };
-    if (user_version >= 5) return;
+    if (user_version >= 6) return;
     if (user_version < 1) convertToEuro({ all, run });
     if (user_version < 2) applyShopDetails({ run });
     if (user_version < 3) seedBlog({ run });
     if (user_version < 4) applyPortugal({ run });
-    applyWording({ run });
-    conn.exec('PRAGMA user_version = 5');
+    if (user_version < 5) applyWording({ run });
+    removeFreeDelivery({ run });
+    conn.exec('PRAGMA user_version = 6');
   });
   return g.__startechDb;
 }

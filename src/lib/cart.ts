@@ -1,5 +1,7 @@
 import { all } from './db.ts';
 import { settings } from './store.ts';
+import { cityFee } from './delivery.ts';
+import { deliveryCharge } from './delivery-charge.ts';
 import { parseColours, parseOptions } from './helpers.ts';
 import type { CartEntry, SessionData } from './types.ts';
 
@@ -73,8 +75,11 @@ export interface CartSummary {
   freeDeliveryRemaining: number;
 }
 
-/** Resolve the session cart against the database and compute totals. */
-export function summary(session: SessionData | null | undefined): CartSummary {
+/**
+ * Resolve the session cart against the database and compute totals. Delivery uses the charge for
+ * `city` when it is one of the listed cities, otherwise the default charge.
+ */
+export function summary(session: SessionData | null | undefined, city?: string): CartSummary {
   const raw = session ? getRaw(session) : [];
   if (!raw.length) return { lines: [], count: 0, subtotal: 0, delivery: 0, total: 0, freeDeliveryRemaining: 0 };
 
@@ -111,7 +116,7 @@ export function summary(session: SessionData | null | undefined): CartSummary {
   const s = settings();
   const subtotal = lines.reduce((sum, l) => sum + l.lineTotal, 0);
   const free = s.freeDeliveryPence > 0 && subtotal >= s.freeDeliveryPence;
-  const delivery = subtotal === 0 || free ? 0 : s.deliveryFeePence;
+  const delivery = deliveryCharge(subtotal, (city ? cityFee(city) : undefined) ?? s.deliveryFeePence, s.freeDeliveryPence);
   return {
     lines,
     count: lines.reduce((n, l) => n + l.qty, 0),

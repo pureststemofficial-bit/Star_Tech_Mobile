@@ -87,6 +87,25 @@ export function applyWording({ run }: Pick<Db, 'run'>) {
   }
 }
 
+/* Free delivery was withdrawn: every order now pays the delivery fee. */
+const NO_FREE_DELIVERY: [string, string][] = [
+  ['Free on orders over €59.93. Otherwise a small delivery charge applies, shown at checkout.',
+    'A delivery charge applies to every order and is shown at checkout.'],
+  ['Grátis em encomendas acima de 59,93 €. Caso contrário, aplica-se uma pequena taxa de entrega, indicada na finalização da compra.',
+    'Aplica-se uma taxa de entrega a todas as encomendas, indicada na finalização da compra.'],
+  ['Free Delivery in Portugal|On orders over €59.93', 'Fast Delivery in Portugal|Same-day dispatch before 2pm'],
+  ['Entrega grátis em Portugal|Em encomendas acima de 59,93 €', 'Entrega rápida em Portugal|Expedição no próprio dia até às 14h'],
+];
+
+/** Turn off free delivery in an existing database and drop the copy that promised it. */
+export function removeFreeDelivery({ run }: Pick<Db, 'run'>) {
+  run("UPDATE settings SET value = '0' WHERE key = 'free_delivery_pence'");
+  for (const [from, to] of NO_FREE_DELIVERY) {
+    run('UPDATE settings SET value = replace(value, ?, ?)', from, to);
+    run('UPDATE pages SET body = replace(body, ?, ?), body_pt = replace(body_pt, ?, ?)', from, to, from, to);
+  }
+}
+
 /** Rewrite the UK wording in an existing database. Only these exact phrases change. */
 export function applyPortugal({ run }: Pick<Db, 'run'>) {
   for (const [from, to] of SETTINGS_TEXT) run('UPDATE settings SET value = replace(value, ?, ?)', from, to);

@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { hashPasswordSync } from './password.ts';
 import { applyContent } from './content.ts';
+import { PORTUGAL_DISTRICTS } from './portugal.ts';
 import type { Db } from './db.ts';
 
 /*
@@ -133,7 +134,7 @@ Refunds are issued to your original payment method within 5 working days of us r
 ## Faulty items
 If your item is faulty, contact us and we will repair, replace or refund it in line with your statutory rights.`],
   delivery: ['Delivery Information', 'Fast delivery in Portugal', `## Standard delivery
-Free on orders over €59.93. Otherwise a small delivery charge applies, shown at checkout.
+A delivery charge applies to every order and is shown at checkout.
 
 ## Delivery times
 Orders placed before 2pm Monday to Friday are usually dispatched the same day and delivered within 1-3 working days.
@@ -198,5 +199,16 @@ export function seed(db: Db, { createAdmin = true } = {}) {
     db.run('INSERT OR IGNORE INTO pages (slug, title, subtitle, body) VALUES (?, ?, ?, ?)', slug, title, subtitle, body);
   }
   applyContent(db);
+  if (!db.get('SELECT 1 AS x FROM delivery_cities LIMIT 1')) seedDeliveryCities(db);
   if (createAdmin) seedAdmin(db);
+}
+
+/** Every municipality, with no charge of its own yet (so the default delivery charge applies). */
+function seedDeliveryCities({ run, tx }: Db) {
+  tx(() => {
+    let order = 0;
+    for (const [district, cities] of PORTUGAL_DISTRICTS) {
+      for (const name of cities) run('INSERT OR IGNORE INTO delivery_cities (name, district, sort_order) VALUES (?, ?, ?)', name, district, order++);
+    }
+  });
 }

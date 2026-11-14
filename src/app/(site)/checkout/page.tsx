@@ -11,11 +11,13 @@ import { ActionForm, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
 import { Container } from '@/components/site/container';
 import { Row } from '@/components/site/order-detail';
+import { CitySelect, DeliveryProvider, DeliveryTotals } from '@/components/shop/checkout-delivery';
 import { placeOrder } from '@/actions/shop';
 import { readSession } from '@/lib/session';
 import { currentUser } from '@/lib/auth';
 import { summary } from '@/lib/cart';
-import { localizedOptions } from '@/lib/store';
+import { localizedOptions, settings } from '@/lib/store';
+import { citiesByDistrict, matchCity } from '@/lib/delivery';
 import { stripeEnabled } from '@/lib/config';
 import { get } from '@/lib/db';
 import { getI18n, titled } from '@/lib/i18n/server';
@@ -33,6 +35,11 @@ export default async function CheckoutPage() {
     ? get<Address>('SELECT * FROM addresses WHERE user_id = ? ORDER BY is_default DESC, id DESC LIMIT 1', user.id)
     : undefined;
   const methods = localizedOptions('payment_methods', locale);
+  const { deliveryFeePence, freeDeliveryPence } = settings();
+  const groups = citiesByDistrict().map((g) => ({
+    district: g.district,
+    cities: g.cities.map((c) => ({ name: c.name, fee: c.fee_pence ?? deliveryFeePence })),
+  }));
   const heading = 'text-lg font-medium tracking-tight';
 
   return (
@@ -46,6 +53,7 @@ export default async function CheckoutPage() {
           {t('checkout.haveAccount')} <Link className="font-medium text-primary hover:underline" href="/account/login?next=/checkout">{t('checkout.signIn')}</Link> {t('checkout.signInSuffix')}
         </p>
       ) : null}
+      <DeliveryProvider groups={groups} initialCity={matchCity(addr?.city)}>
       <ActionForm action={placeOrder} className="mt-8 grid items-start gap-8 lg:grid-cols-[1fr_400px]">
         <div className="grid gap-9">
           <section className="grid gap-4">
@@ -61,7 +69,7 @@ export default async function CheckoutPage() {
             <Field label={t('form.line1')} htmlFor="line1"><Input id="line1" name="line1" defaultValue={addr?.line1} autoComplete="address-line1" required maxLength={120} /></Field>
             <Field label={t('form.line2')} htmlFor="line2" optional><Input id="line2" name="line2" defaultValue={addr?.line2} autoComplete="address-line2" maxLength={120} /></Field>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t('form.city')} htmlFor="city"><Input id="city" name="city" defaultValue={addr?.city} autoComplete="address-level2" required maxLength={60} /></Field>
+              <Field label={t('form.city')} htmlFor="city"><CitySelect id="city" groups={groups} /></Field>
               <Field label={t('form.postcode')} htmlFor="postcode"><Input id="postcode" name="postcode" defaultValue={addr?.postcode} autoComplete="postal-code" required maxLength={10} /></Field>
             </div>
             <Field label={t('form.notes')} htmlFor="notes" optional><Textarea id="notes" name="notes" maxLength={500} /></Field>
@@ -96,8 +104,7 @@ export default async function CheckoutPage() {
               ))}
             </ul>
             <Row label={t('order.subtotal')} value={money(cart.subtotal)} />
-            <Row label={t('order.delivery')} value={cart.delivery ? money(cart.delivery) : t('order.free')} />
-            <Row label={t('order.total')} value={money(cart.total)} strong />
+            <DeliveryTotals subtotal={cart.subtotal} freeOver={freeDeliveryPence} />
             <label className="flex min-h-11 items-center gap-2.5 py-1">
               <Checkbox name="agree" required />
               <span>{t('checkout.agree')} <Link href="/terms" target="_blank" className="text-primary underline">{t('checkout.terms')}</Link></span>
@@ -107,6 +114,7 @@ export default async function CheckoutPage() {
           </CardContent>
         </Card>
       </ActionForm>
+      </DeliveryProvider>
     </Container>
   );
 }
