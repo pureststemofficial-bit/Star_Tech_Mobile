@@ -1,6 +1,7 @@
 /*
- * Blog SEO analysis. Pure functions with no server imports, so the same rules score an article
- * live in the editor (client) and on the Admin -> Blog dashboard (server).
+ * Blog SEO analysis, plus the shared helpers product SEO (lib/product-seo.ts) builds on. Pure
+ * functions with no server imports, so the same rules score live in the editor (client) and on
+ * the admin dashboards (server).
  *
  * The body is the small markdown dialect from lib/markdown.ts: ## / ### headings, - lists,
  * **bold**, [text](url) links and blank lines between paragraphs.
@@ -57,6 +58,8 @@ export interface SeoSetup {
   peers: Record<SeoLang, SeoPeer[]>;
   /** Scores recorded when the article was saved, oldest first. */
   history: Record<SeoLang, { day: string; score: number }[]>;
+  /** Products only: category names by id, so the live score follows the category picker. */
+  categories?: Record<string, Record<SeoLang, string>>;
 }
 
 export interface SeoContext {
@@ -67,6 +70,8 @@ export interface SeoContext {
   peers?: SeoPeer[];
   /** Only the English analysis checks the slug, since both languages share one URL. */
   checkSlug?: boolean;
+  /** The item being scored, so it is never compared with itself when peers include it. */
+  selfId?: number;
 }
 
 export interface SeoStats {
@@ -85,6 +90,10 @@ export interface SeoStats {
   /** The title and description as a search engine would show them. */
   displayTitle: string;
   displayDescription: string;
+  /** Products only. */
+  images?: number;
+  features?: number;
+  specs?: number;
 }
 
 export interface SeoReport {
@@ -154,8 +163,8 @@ export function countPhrase(text: string, keyword: string): number {
   return n;
 }
 
-const has = (text: string, keyword: string) => countPhrase(text, keyword) > 0;
-const words = (s: string) => normalize(s).split(' ').filter(Boolean);
+export const has = (text: string, keyword: string) => countPhrase(text, keyword) > 0;
+export const words = (s: string) => normalize(s).split(' ').filter(Boolean);
 
 const LINK = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
 
@@ -222,8 +231,58 @@ function syllables(word: string, lang: SeoLang): number {
   return Math.max(1, w.match(/[aeiou]+/g)?.length ?? 1);
 }
 
-function sentencesOf(blocks: string[]): string[] {
+export function sentencesOf(blocks: string[]): string[] {
   return blocks.flatMap((b) => b.split(/(?<=[.!?…])\s+/)).map((s) => s.trim()).filter((s) => words(s).length > 0);
+}
+
+/** Flesch reading ease of a set of sentences (Portuguese uses the Martins adaptation), 0–100. */
+export function readingEaseOf(sentences: string[], lang: SeoLang) {
+  const sentenceWords = sentences.map((x) => words(x).length);
+  const allWords = sentences.flatMap((x) => x.split(/\s+/));
+  const asl = sentences.length ? sentenceWords.reduce((a, b) => a + b, 0) / sentences.length : 0;
+  const asw = allWords.length ? allWords.reduce((a, w) => a + syllables(w, lang), 0) / allWords.length : 0;
+  const ease = sentences.length ? Math.max(0, Math.min(100, (lang === 'pt' ? 248.835 : 206.835) - 1.015 * asl - 84.6 * asw)) : 0;
+  return { ease, asl, sentenceWords };
+}
+
+/** Collects checks; `finish` turns them into a score and works out what each fix is worth. */
+export function checkList() {
+  const checks: SeoCheck[] = [];
+  const add = (id: string, group: SeoGroup, weight: number, status: SeoStatus, message: string) => { checks.push({ id, group, weight, status, message, gain: 0 }); };
+  const finish = (stats: SeoStats): SeoReport => {
+    const total = checks.reduce((a, c) => a + c.weight, 0);
+    const value = (c: SeoCheck) => (c.status === 'good' ? 1 : c.status === 'ok' ? 0.5 : 0);
+    const score = total ? Math.round((checks.reduce((a, c) => a + c.weight * value(c), 0) * 100) / total) : 0;
+    for (const c of checks) c.gain = total ? (c.weight * (1 - value(c)) * 100) / total : 0;
+    return { score, status: scoreStatus(score), checks, stats };
+  };
+  return { checks, add, finish };
+}
+
+type Add = ReturnType<typeof checkList>['add'];
+
+/** Search-listing checks shared by articles and products: title and description length, unique title, URL. */
+export function listingChecks(add: Add, o: { title: string; description: string; name: string; peers: SeoPeer[]; ctx: SeoContext; noun: string; collection: string }) {
+  const L = SEO_LIMITS;
+  const tl = o.title.length;
+  if (tl < L.title.min) add('meta-title', 'meta', 6, tl < 15 ? 'bad' : 'ok', `The SEO title is ${tl} characters. Aim for ${L.title.min}–${L.title.max} to use the space Google gives you.`);
+  else if (tl > L.title.max) add('meta-title', 'meta', 6, tl > 70 ? 'bad' : 'ok', `The SEO title is ${tl} characters, so Google will cut it off. Keep it under ${L.title.max}.`);
+  else add('meta-title', 'meta', 6, 'good', `The SEO title is ${tl} characters: a good length.`);
+
+  const dl = o.description.length;
+  if (!dl) add('meta-desc', 'meta', 6, 'bad', 'Write a meta description (or a summary) so Google does not pick random text.');
+  else if (dl < L.description.min) add('meta-desc', 'meta', 6, dl < 70 ? 'bad' : 'ok', `The meta description is ${dl} characters. Aim for ${L.description.min}–${L.description.max}.`);
+  else if (dl > L.description.max) add('meta-desc', 'meta', 6, dl > 200 ? 'bad' : 'ok', `The meta description is ${dl} characters and will be cut off. Keep it under ${L.description.max}.`);
+  else add('meta-desc', 'meta', 6, 'good', `The meta description is ${dl} characters: a good length.`);
+
+  const clash = o.name.trim() ? o.peers.find((p) => normalize(p.title) === normalize(o.name)) : undefined;
+  add('meta-unique', 'meta', 4, clash ? 'bad' : 'good', clash ? `Another ${o.noun} has the same name. Every page needs a unique title.` : `The title is unique across the ${o.collection}.`);
+
+  if (o.ctx.checkSlug) {
+    const sl = o.ctx.slug.length;
+    if (!o.ctx.slug) add('meta-slug', 'meta', 2, 'ok', 'The URL slug will be generated from the name.');
+    else add('meta-slug', 'meta', 2, sl > L.slugMax ? 'ok' : 'good', sl > L.slugMax ? `The URL slug is ${sl} characters. Short URLs are easier to share.` : 'The URL slug is short and readable.');
+  }
 }
 
 export const splitPhrases = (s: string) => s.split(/[,;\n]/).map((x) => x.trim()).filter(Boolean);
@@ -262,9 +321,8 @@ export function analyzeSeo(draft: SeoDraft, ctx: SeoContext): SeoReport {
   const bodyWords = words(parsed.text).length;
   const title = displayTitle(draft, ctx.siteName);
   const description = displayDescription(draft);
-  const peers = ctx.peers ?? [];
-  const checks: SeoCheck[] = [];
-  const add = (id: string, group: SeoGroup, weight: number, status: SeoStatus, message: string) => checks.push({ id, group, weight, status, message, gain: 0 });
+  const peers = (ctx.peers ?? []).filter((p) => p.id !== ctx.selfId);
+  const { add, finish } = checkList();
 
   /* Focus keyword */
   const keywordCount = kw ? countPhrase(parsed.text, kw) : 0;
@@ -323,25 +381,7 @@ export function analyzeSeo(draft: SeoDraft, ctx: SeoContext): SeoReport {
   }
 
   /* Search listing */
-  const tl = title.length;
-  if (tl < L.title.min) add('meta-title', 'meta', 6, tl < 15 ? 'bad' : 'ok', `The SEO title is ${tl} characters. Aim for ${L.title.min}–${L.title.max} to use the space Google gives you.`);
-  else if (tl > L.title.max) add('meta-title', 'meta', 6, tl > 70 ? 'bad' : 'ok', `The SEO title is ${tl} characters, so Google will cut it off. Keep it under ${L.title.max}.`);
-  else add('meta-title', 'meta', 6, 'good', `The SEO title is ${tl} characters: a good length.`);
-
-  const dl = description.length;
-  if (!dl) add('meta-desc', 'meta', 6, 'bad', 'Write a meta description (or a summary) so Google does not pick random text.');
-  else if (dl < L.description.min) add('meta-desc', 'meta', 6, dl < 70 ? 'bad' : 'ok', `The meta description is ${dl} characters. Aim for ${L.description.min}–${L.description.max}.`);
-  else if (dl > L.description.max) add('meta-desc', 'meta', 6, dl > 200 ? 'bad' : 'ok', `The meta description is ${dl} characters and will be cut off. Keep it under ${L.description.max}.`);
-  else add('meta-desc', 'meta', 6, 'good', `The meta description is ${dl} characters: a good length.`);
-
-  const titleClash = peers.find((p) => normalize(p.title) === normalize(draft.title) && draft.title.trim());
-  add('meta-unique', 'meta', 4, titleClash ? 'bad' : 'good', titleClash ? 'Another article has the same title. Every page needs a unique title.' : 'The title is unique across the blog.');
-
-  if (ctx.checkSlug) {
-    const sl = ctx.slug.length;
-    if (!ctx.slug) add('meta-slug', 'meta', 2, 'ok', 'The URL slug will be generated from the title.');
-    else add('meta-slug', 'meta', 2, sl > L.slugMax ? 'ok' : 'good', sl > L.slugMax ? `The URL slug is ${sl} characters. Short URLs are easier to share.` : 'The URL slug is short and readable.');
-  }
+  listingChecks(add, { title, description, name: draft.title, peers, ctx, noun: 'article', collection: 'blog' });
 
   /* Content */
   if (bodyWords >= L.words.good) add('content-length', 'content', 8, 'good', `${bodyWords} words: enough depth to rank well.`);
@@ -367,13 +407,7 @@ export function analyzeSeo(draft: SeoDraft, ctx: SeoContext): SeoReport {
 
   /* Readability */
   const sentences = sentencesOf(parsed.paragraphs);
-  const sentenceWords = sentences.map((s) => words(s).length);
-  const totalSentenceWords = sentenceWords.reduce((a, b) => a + b, 0);
-  const allWords = sentences.flatMap((s) => s.split(/\s+/));
-  const syl = allWords.reduce((a, w) => a + syllables(w, ctx.lang), 0);
-  const asl = sentences.length ? totalSentenceWords / sentences.length : 0;
-  const asw = allWords.length ? syl / allWords.length : 0;
-  const readingEase = sentences.length ? Math.max(0, Math.min(100, (ctx.lang === 'pt' ? 248.835 : 206.835) - 1.015 * asl - 84.6 * asw)) : 0;
+  const { ease: readingEase, asl, sentenceWords } = readingEaseOf(sentences, ctx.lang);
 
   if (bodyWords >= 50) {
     const re = Math.round(readingEase);
@@ -403,30 +437,20 @@ export function analyzeSeo(draft: SeoDraft, ctx: SeoContext): SeoReport {
     }
   }
 
-  const total = checks.reduce((a, c) => a + c.weight, 0);
-  const got = checks.reduce((a, c) => a + c.weight * (c.status === 'good' ? 1 : c.status === 'ok' ? 0.5 : 0), 0);
-  const score = total ? Math.round((got * 100) / total) : 0;
-  for (const c of checks) c.gain = total ? (c.weight * (c.status === 'bad' ? 1 : c.status === 'ok' ? 0.5 : 0) * 100) / total : 0;
-
-  return {
-    score,
-    status: scoreStatus(score),
-    checks,
-    stats: {
-      words: bodyWords,
-      readingMinutes: Math.max(1, Math.round(bodyWords / 200)),
-      keywordCount,
-      density,
-      headings: parsed.headings.length,
-      paragraphs: parsed.paragraphs.length,
-      internalLinks: internal,
-      externalLinks: external,
-      readingEase,
-      avgSentenceWords: asl,
-      displayTitle: title,
-      displayDescription: description,
-    },
-  };
+  return finish({
+    words: bodyWords,
+    readingMinutes: Math.max(1, Math.round(bodyWords / 200)),
+    keywordCount,
+    density,
+    headings: parsed.headings.length,
+    paragraphs: parsed.paragraphs.length,
+    internalLinks: internal,
+    externalLinks: external,
+    readingEase,
+    avgSentenceWords: asl,
+    displayTitle: title,
+    displayDescription: description,
+  });
 }
 
 /* ---------- reading articles ---------- */

@@ -7,6 +7,7 @@ import { ProductForm } from '@/components/admin/product-form';
 import { requireAdmin } from '@/lib/auth';
 import { get, all } from '@/lib/db';
 import { categories } from '@/lib/store';
+import { productSeoSetup } from '@/lib/product-seo-admin';
 import { int } from '@/lib/validate';
 import type { Product, ProductImage } from '@/lib/types';
 
@@ -25,7 +26,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         actions={<Button asChild variant="white"><a href={`/product/${product.slug}`} target="_blank" rel="noopener"><Eye />View on website</a></Button>}
       />
       {/* key resets the form's default values after each save */}
-      <ProductForm key={product.updated_at + images.length} product={product} images={images} cats={categories()} />
+      <ProductForm key={product.updated_at + images.length} product={product} images={images} cats={categories()} seo={productSeoSetup(product.id)} />
     </>
   );
 }

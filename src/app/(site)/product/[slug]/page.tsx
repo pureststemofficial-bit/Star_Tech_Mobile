@@ -35,10 +35,20 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { t, locale } = await getI18n();
   if (!product) return { title: t('product.notFound') };
   const first = get<{ path: string }>('SELECT path FROM product_images WHERE product_id = ? ORDER BY sort_order, id LIMIT 1', product.id);
+  const name = pick(product, 'name', locale);
+  // Custom SEO fields win; a custom SEO title is used exactly as written, without the "| Site" suffix.
+  const seoTitle = (locale === 'pt' ? product.seo_title_pt : product.seo_title).trim();
+  const description = (locale === 'pt' ? product.seo_description_pt : product.seo_description).trim() || pick(product, 'short_desc', locale);
+  const keyword = (locale === 'pt' ? product.focus_keyword_pt : product.focus_keyword).trim();
+  const alt = pick(product, 'image_alt', locale) || name;
+  const images = first ? [{ url: first.path, width: 1200, height: 1200, alt }] : undefined;
   return {
-    title: pick(product, 'name', locale),
-    description: pick(product, 'short_desc', locale),
-    openGraph: first ? { images: [{ url: first.path }] } : undefined,
+    title: seoTitle ? { absolute: seoTitle } : name,
+    description,
+    ...(keyword ? { keywords: [keyword] } : {}),
+    alternates: { canonical: `/product/${product.slug}` },
+    openGraph: { title: seoTitle || name, description, url: `/product/${product.slug}`, ...(images ? { images } : {}) },
+    twitter: { card: 'summary_large_image', title: seoTitle || name, description, ...(first ? { images: [first.path] } : {}) },
   };
 }
 
@@ -65,8 +75,10 @@ export default async function ProductPage({ params }: { params: Params }) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name,
-    description: pick(product, 'short_desc', locale),
-    brand: { '@type': 'Brand', name: product.brand },
+    description: (locale === 'pt' ? product.seo_description_pt : product.seo_description).trim() || pick(product, 'short_desc', locale),
+    sku: product.slug,
+    ...(categoryName ? { category: categoryName } : {}),
+    ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
     image: images.map((i) => i.path),
     ...(reviews.length ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating.toFixed(1), reviewCount: reviews.length } } : {}),
     offers: {
@@ -89,7 +101,7 @@ export default async function ProductPage({ params }: { params: Params }) {
       </nav>
 
       <div className="grid items-start gap-8 lg:grid-cols-[1.08fr_1fr] lg:gap-16">
-        <Gallery name={name} images={images} />
+        <Gallery name={name} images={images} mainAlt={pick(product, 'image_alt', locale)} />
 
         <div className="grid content-start gap-6 lg:py-4">
           <div>

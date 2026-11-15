@@ -46,6 +46,20 @@ export interface Product {
   is_featured: number;
   is_popular: number;
   is_new_arrival: number;
+  /** SEO: the search phrase the product targets, and related phrases (comma-separated). */
+  focus_keyword: string;
+  focus_keyword_pt: string;
+  related_keywords: string;
+  related_keywords_pt: string;
+  /** SEO: overrides the page title in Google; blank uses "Name | Site name". */
+  seo_title: string;
+  seo_title_pt: string;
+  /** SEO: overrides the meta description; blank uses the short description. */
+  seo_description: string;
+  seo_description_pt: string;
+  /** Alt text for the main photo. */
+  image_alt: string;
+  image_alt_pt: string;
   is_active: number;
   sold_count: number;
   created_at: string;

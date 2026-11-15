@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ActionForm, ConfirmButton, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
 import { FormattingHelp } from '@/components/admin/formatting-help';
-import { SeoFieldsCard, SeoProvider, SeoScoreCard } from '@/components/admin/blog-seo';
+import { SeoFieldsCard, SeoProvider, SeoScoreCard } from '@/components/admin/seo-panel';
 import { saveBlogPost, deleteBlogPost } from '@/actions/admin';
 import type { BlogPost } from '@/lib/types';
 import type { SeoSetup } from '@/lib/seo';
@@ -20,7 +20,7 @@ export function BlogForm({ post, seo }: { post?: BlogPost; seo: SeoSetup }) {
       {/* The grid sits inside the form so a validation message spans the full width above it. */}
       <ActionForm action={saveBlogPost}>
         <input type="hidden" name="id" value={p?.id ?? ''} />
-        <SeoProvider post={p} setup={seo}>
+        <SeoProvider kind="article" item={p} setup={seo} image={p?.thumb}>
         <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[1fr_340px]">
         <div className="grid grid-cols-1 gap-5">
           <Card>
@@ -46,7 +46,7 @@ export function BlogForm({ post, seo }: { post?: BlogPost; seo: SeoSetup }) {
               <Field label="Article text" htmlFor="body_pt"><Textarea id="body_pt" name="body_pt" defaultValue={p?.body_pt} rows={20} maxLength={50000} className="font-mono text-sm" /></Field>
             </CardContent>
           </Card>
-          <SeoFieldsCard post={p} />
+          <SeoFieldsCard item={p} />
         </div>
         {/* Stretched to the full form height so the SEO score can stay in view while writing. */}
         <div className="flex flex-col gap-5 self-stretch">

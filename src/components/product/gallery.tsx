@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useI18n } from '@/components/i18n-provider';
 import { cn } from '@/lib/utils';
 
-export function Gallery({ name, images }: { name: string; images: { path: string; thumb: string }[] }) {
+/** `mainAlt` describes the first (main) photo; the others fall back to the product name. */
+export function Gallery({ name, images, mainAlt }: { name: string; images: { path: string; thumb: string }[]; mainAlt?: string }) {
   const { t } = useI18n();
   const [active, setActive] = useState(0);
   const main = images[active]?.path ?? '/img/products/placeholder.svg';
@@ -12,7 +13,7 @@ export function Gallery({ name, images }: { name: string; images: { path: string
     <div className="grid gap-3 lg:sticky lg:top-40">
       <div className="aspect-square overflow-hidden rounded-[1.75rem] bg-muted">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img key={main} src={main} alt={name} width={1200} height={1200} fetchPriority="high" className="page-enter size-full object-cover" />
+        <img key={main} src={main} alt={(active === 0 && mainAlt) || name} width={1200} height={1200} fetchPriority="high" className="page-enter size-full object-cover" />
       </div>
       {images.length > 1 ? (
         <div className="flex gap-2.5 overflow-x-auto p-0.5">

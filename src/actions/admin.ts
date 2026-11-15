@@ -11,6 +11,7 @@ import { rateLimit } from '@/lib/ratelimit';
 import { removeOrder } from '@/lib/orders';
 import { saveImage, removeUpload, filesFrom, ImageError } from '@/lib/images';
 import { recordSeoScores } from '@/lib/blog';
+import { recordProductSeoScores } from '@/lib/product-seo-admin';
 import { str, int, bool, isEmail, isDate, oneOf, checker, fields } from '@/lib/validate';
 import { toPence, slugify, safeRedirectPath } from '@/lib/helpers';
 import type { BlogPost, FormState, Order, ProductImage, Category } from '@/lib/types';
@@ -71,6 +72,16 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     description_pt: str(formData.get('description_pt'), 10000),
     features_pt: str(formData.get('features_pt'), 3000),
     specs_pt: str(formData.get('specs_pt'), 5000),
+    focus_keyword: str(formData.get('focus_keyword'), 80),
+    focus_keyword_pt: str(formData.get('focus_keyword_pt'), 80),
+    related_keywords: str(formData.get('related_keywords'), 300),
+    related_keywords_pt: str(formData.get('related_keywords_pt'), 300),
+    seo_title: str(formData.get('seo_title'), 120),
+    seo_title_pt: str(formData.get('seo_title_pt'), 120),
+    seo_description: str(formData.get('seo_description'), 320),
+    seo_description_pt: str(formData.get('seo_description_pt'), 320),
+    image_alt: str(formData.get('image_alt'), 160),
+    image_alt_pt: str(formData.get('image_alt_pt'), 160),
     is_featured: bool(formData.get('is_featured')),
     is_popular: bool(formData.get('is_popular')),
     is_new_arrival: bool(formData.get('is_new_arrival')),
@@ -93,10 +104,12 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     run(`UPDATE products SET name = ?, slug = ?, category_id = ?, brand = ?, price_pence = ?, compare_pence = ?, stock = ?,
            short_desc = ?, description = ?, features = ?, specs = ?, colours = ?, options = ?, is_featured = ?, is_popular = ?, is_new_arrival = ?, is_active = ?,
            name_pt = ?, short_desc_pt = ?, description_pt = ?, features_pt = ?, specs_pt = ?,
+           focus_keyword = ?, focus_keyword_pt = ?, related_keywords = ?, related_keywords_pt = ?, seo_title = ?, seo_title_pt = ?, seo_description = ?, seo_description_pt = ?, image_alt = ?, image_alt_pt = ?,
            updated_at = datetime('now') WHERE id = ?`,
       form.name, form.slug, form.category_id, form.brand, price, compare, stock, form.short_desc, form.description,
       form.features, form.specs, form.colours, form.options, form.is_featured, form.is_popular, form.is_new_arrival, form.is_active,
-      form.name_pt, form.short_desc_pt, form.description_pt, form.features_pt, form.specs_pt, id);
+      form.name_pt, form.short_desc_pt, form.description_pt, form.features_pt, form.specs_pt,
+      form.focus_keyword, form.focus_keyword_pt, form.related_keywords, form.related_keywords_pt, form.seo_title, form.seo_title_pt, form.seo_description, form.seo_description_pt, form.image_alt, form.image_alt_pt, id);
 
     // Remove ticked images, then set the chosen main image.
     for (const raw of formData.getAll('remove_image')) {
@@ -116,11 +129,13 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     }
   } else {
     productId = run(`INSERT INTO products (name, slug, category_id, brand, price_pence, compare_pence, stock, short_desc, description,
-                       features, specs, colours, options, is_featured, is_popular, is_new_arrival, is_active, name_pt, short_desc_pt, description_pt, features_pt, specs_pt)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                       features, specs, colours, options, is_featured, is_popular, is_new_arrival, is_active, name_pt, short_desc_pt, description_pt, features_pt, specs_pt,
+                       focus_keyword, focus_keyword_pt, related_keywords, related_keywords_pt, seo_title, seo_title_pt, seo_description, seo_description_pt, image_alt, image_alt_pt)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       form.name, form.slug, form.category_id, form.brand, price, compare, stock, form.short_desc, form.description,
       form.features, form.specs, form.colours, form.options, form.is_featured, form.is_popular, form.is_new_arrival, form.is_active,
-      form.name_pt, form.short_desc_pt, form.description_pt, form.features_pt, form.specs_pt).lastInsertRowid;
+      form.name_pt, form.short_desc_pt, form.description_pt, form.features_pt, form.specs_pt,
+      form.focus_keyword, form.focus_keyword_pt, form.related_keywords, form.related_keywords_pt, form.seo_title, form.seo_title_pt, form.seo_description, form.seo_description_pt, form.image_alt, form.image_alt_pt).lastInsertRowid;
   }
 
   let imageError: string | null = null;
@@ -135,6 +150,7 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
     }
   }
   store.invalidate();
+  recordProductSeoScores(productId);
   await flash(imageError ? 'error' : 'success', imageError ? `Product saved, but an image was skipped: ${imageError}` : existing ? 'Product updated.' : 'Product created.');
   redirect(`/admin/products/${productId}`);
 }

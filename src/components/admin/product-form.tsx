@@ -7,17 +7,20 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import { ActionForm, ConfirmButton, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
+import { SeoFieldsCard, SeoProvider, SeoScoreCard } from '@/components/admin/seo-panel';
 import { saveProduct, deleteProduct } from '@/actions/admin';
 import { fromPence } from '@/lib/format';
 import type { Category, Product, ProductImage } from '@/lib/types';
+import type { SeoSetup } from '@/lib/seo';
 
-/** Create / edit form for a product, including image upload, removal and main-image choice. */
-export function ProductForm({ product, images, cats }: { product?: Product; images: ProductImage[]; cats: Category[] }) {
+/** Create / edit form for a product, including image upload, removal and main-image choice, with a live SEO score. */
+export function ProductForm({ product, images, cats, seo }: { product?: Product; images: ProductImage[]; cats: Category[]; seo: SeoSetup }) {
   const p = product;
   return (
     <>
       <ActionForm action={saveProduct} className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[1fr_340px]">
         <input type="hidden" name="id" value={p?.id ?? ''} />
+        <SeoProvider kind="product" item={p} setup={seo} image={images[0]?.thumb} imageCount={images.length}>
         <div className="grid grid-cols-1 gap-5">
           <Card>
             <CardHeader><CardTitle className="text-base">Basic information</CardTitle></CardHeader>
@@ -90,8 +93,10 @@ export function ProductForm({ product, images, cats }: { product?: Product; imag
               </Field>
             </CardContent>
           </Card>
+          <SeoFieldsCard item={p} />
         </div>
-        <div className="grid gap-5 xl:sticky xl:top-20">
+        {/* Stretched to the full form height so the SEO score can stay in view while editing. */}
+        <div className="flex flex-col gap-5 self-stretch">
           <Card>
             <CardHeader><CardTitle className="text-base">Pricing &amp; stock</CardTitle></CardHeader>
             <CardContent className="grid gap-4">
@@ -115,7 +120,11 @@ export function ProductForm({ product, images, cats }: { product?: Product; imag
             </CardContent>
           </Card>
           <SubmitButton size="lg" className="w-full">{p ? 'Save changes' : 'Create product'}</SubmitButton>
+          <div className="xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:rounded-xl">
+            <SeoScoreCard />
+          </div>
         </div>
+        </SeoProvider>
       </ActionForm>
       {p ? (
         <form action={deleteProduct} className="border-t pt-4">

@@ -3,6 +3,7 @@ import { PageHeader } from '@/components/admin/page-header';
 import { ProductForm } from '@/components/admin/product-form';
 import { requireAdmin } from '@/lib/auth';
 import { categories } from '@/lib/store';
+import { productSeoSetup } from '@/lib/product-seo-admin';
 
 export const metadata: Metadata = { title: 'New product' };
 
@@ -11,7 +12,7 @@ export default async function NewProductPage() {
   return (
     <>
       <PageHeader title="New product" back={{ href: '/admin/products', label: 'All products' }} />
-      <ProductForm images={[]} cats={categories()} />
+      <ProductForm images={[]} cats={categories()} seo={productSeoSetup()} />
     </>
   );
 }

@@ -13,20 +13,39 @@ import {
   analyzeSeo, draftFor, linkSuggestions, SEO_GROUPS, SEO_LIMITS,
   type SeoFields, type SeoGroup, type SeoLang, type SeoReport, type SeoSetup, type SeoStatus,
 } from '@/lib/seo';
-import type { BlogPost } from '@/lib/types';
+import { analyzeProductSeo, productDraftFor, type ProductSeoFields } from '@/lib/product-seo';
 
 /*
- * Live SEO for the blog editor. The article fields stay ordinary uncontrolled inputs; SeoProvider
- * listens to the form's input events and re-scores both languages as the admin types.
+ * Live SEO for the blog and product editors. The form fields stay ordinary uncontrolled inputs;
+ * SeoProvider listens to the form's input events and re-scores both languages as the admin types.
  */
 
-const FIELD_NAMES = [
-  'title', 'title_pt', 'excerpt', 'excerpt_pt', 'body', 'body_pt', 'focus_keyword', 'focus_keyword_pt',
-  'seo_title', 'seo_title_pt', 'seo_description', 'seo_description_pt', 'image_alt', 'image_alt_pt', 'related_keywords', 'related_keywords_pt', 'slug',
-] as const;
-type Values = SeoFields & { slug: string };
+export type SeoKind = 'article' | 'product';
+
+const SEO_INPUTS = ['focus_keyword', 'related_keywords', 'seo_title', 'seo_description', 'image_alt'] as const;
+const withPt = (names: readonly string[]) => names.flatMap((n) => [n, `${n}_pt`]);
+
+const KINDS = {
+  article: {
+    fields: [...withPt(['title', 'excerpt', 'body', ...SEO_INPUTS]), 'slug'],
+    title: 'title', summary: 'excerpt', body: 'body', path: 'blog', noun: 'article', imageInput: 'image',
+    keywordHint: 'The main phrase people type into Google to find this article, e.g. “cracked phone screen”.',
+    relatedHint: 'Synonyms and other ways people search for this, separated by commas, e.g. “broken screen, screen repair”.',
+    summaryName: 'the summary', altLabel: 'Cover image alt text', noPt: 'Write the Portuguese article text to get a Portuguese SEO score.',
+  },
+  product: {
+    fields: [...withPt(['name', 'short_desc', 'description', 'features', 'specs', ...SEO_INPUTS]), 'brand', 'slug', 'category_id', 'price', 'stock'],
+    title: 'name', summary: 'short_desc', body: 'description', path: 'product', noun: 'product', imageInput: 'images',
+    keywordHint: 'What shoppers type into Google to find this product, e.g. “iPhone 15 Pro 256GB” or “USB-C fast charger”.',
+    relatedHint: 'Other names, model numbers or uses, separated by commas, e.g. “Apple iPhone 15 Pro, A3102, titanium iPhone”.',
+    summaryName: 'the short description', altLabel: 'Main photo alt text', noPt: 'Add a Portuguese name or description to get a Portuguese SEO score.',
+  },
+} as const;
+
+type Values = Record<string, string>;
 
 interface SeoState {
+  kind: SeoKind;
   lang: SeoLang;
   setLang: (l: SeoLang) => void;
   values: Values;
@@ -51,18 +70,26 @@ const STATUS_BG: Record<SeoStatus, string> = { good: 'bg-success', ok: 'bg-warni
 const STATUS_SOFT: Record<SeoStatus, string> = { good: 'bg-success-soft text-success', ok: 'bg-warning-soft text-warning', bad: 'bg-destructive/10 text-destructive' };
 const STATUS_WORD: Record<SeoStatus, string> = { good: 'Good', ok: 'Needs work', bad: 'Poor' };
 
-function initialValues(post?: BlogPost): Values {
-  const v = {} as Values;
-  for (const k of FIELD_NAMES) v[k] = (post?.[k] as string | undefined) ?? '';
-  return v;
-}
+const str = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 
-export function SeoProvider({ post, setup, children }: { post?: BlogPost; setup: SeoSetup; children: React.ReactNode }) {
+export function SeoProvider({ kind, item, setup, image: initialImage, imageCount: initialImages = 0, children }: {
+  kind: SeoKind;
+  /** The saved article or product, or undefined for a new one. */
+  item?: object;
+  setup: SeoSetup;
+  /** The current cover or main photo, for the social preview. */
+  image?: string;
+  /** Products: photos already saved. */
+  imageCount?: number;
+  children: React.ReactNode;
+}) {
+  const cfg = KINDS[kind];
   const ref = useRef<HTMLDivElement>(null);
   const [lang, setLang] = useState<SeoLang>('en');
-  const [values, setValues] = useState<Values>(() => initialValues(post));
-  const [image, setImage] = useState<string | undefined>(post?.thumb);
-  const [publishedDate, setPublishedDate] = useState(post?.published ?? new Date().toISOString().slice(0, 10));
+  const [values, setValues] = useState<Values>(() => Object.fromEntries(cfg.fields.map((k) => [k, str((item as Record<string, unknown> | undefined)?.[k])])));
+  const [imageCount, setImageCount] = useState(initialImages);
+  const [image, setImage] = useState<string | undefined>(initialImage);
+  const [publishedDate, setPublishedDate] = useState(() => str((item as { published?: string } | undefined)?.published) || new Date().toISOString().slice(0, 10));
   const [dirty, setDirty] = useState(false);
 
   const form = useCallback(() => ref.current?.closest('form') ?? null, []);
@@ -72,27 +99,29 @@ export function SeoProvider({ post, setup, children }: { post?: BlogPost; setup:
     if (!f) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const read = () => {
-      const next = {} as Values;
-      for (const k of FIELD_NAMES) {
-        const el = f.elements.namedItem(k) as HTMLInputElement | HTMLTextAreaElement | null;
-        next[k] = el?.value ?? '';
-      }
+      const next: Values = {};
+      for (const k of cfg.fields) next[k] = (f.elements.namedItem(k) as HTMLInputElement | null)?.value ?? '';
       setValues(next);
       const date = f.elements.namedItem('published') as HTMLInputElement | null;
       if (date?.value) setPublishedDate(date.value);
+      if (kind === 'product') {
+        const saved = f.querySelectorAll('input[name="main_image"]').length - f.querySelectorAll('input[name="remove_image"]:checked').length;
+        const uploads = (f.elements.namedItem(cfg.imageInput) as HTMLInputElement | null)?.files?.length ?? 0;
+        setImageCount(saved + Math.min(uploads, 10));
+      }
     };
     const onInput = (e: Event) => {
       setDirty(true);
       clearTimeout(timer);
       timer = setTimeout(read, 150);
       const t = e.target as HTMLInputElement;
-      if (t.name === 'image' && t.files?.[0]) setImage(URL.createObjectURL(t.files[0]));
+      if (t.name === cfg.imageInput && t.files?.[0]) setImage(URL.createObjectURL(t.files[0]));
     };
     read();
     f.addEventListener('input', onInput);
     f.addEventListener('change', onInput);
     return () => { clearTimeout(timer); f.removeEventListener('input', onInput); f.removeEventListener('change', onInput); };
-  }, [form]);
+  }, [form, cfg, kind]);
 
   // Warn before leaving with unsaved changes: closing the tab, reloading, or following a link in the admin panel.
   // Saving navigates programmatically, so it is never blocked.
@@ -102,12 +131,12 @@ export function SeoProvider({ post, setup, children }: { post?: BlogPost; setup:
     const onClick = (e: MouseEvent) => {
       const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
       if (!a || a.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-      if (!window.confirm('You have unsaved changes to this article. Leave without saving?')) { e.preventDefault(); e.stopPropagation(); }
+      if (!window.confirm(`You have unsaved changes to this ${cfg.noun}. Leave without saving?`)) { e.preventDefault(); e.stopPropagation(); }
     };
     window.addEventListener('beforeunload', onUnload);
     document.addEventListener('click', onClick, true);
     return () => { window.removeEventListener('beforeunload', onUnload); document.removeEventListener('click', onClick, true); };
-  }, [dirty]);
+  }, [dirty, cfg]);
 
   // Revoke the object URL of a replaced local preview.
   useEffect(() => () => { if (image?.startsWith('blob:')) URL.revokeObjectURL(image); }, [image]);
@@ -115,15 +144,22 @@ export function SeoProvider({ post, setup, children }: { post?: BlogPost; setup:
   const reports = useMemo(() => {
     const out = {} as Record<SeoLang, SeoReport | null>;
     for (const l of ['en', 'pt'] as const) {
-      const draft = draftFor(values, l);
-      out[l] = draft ? analyzeSeo(draft, { lang: l, slug: values.slug, siteName: setup.siteName[l], peers: setup.peers[l], checkSlug: l === 'en' }) : null;
+      const ctx = { lang: l, slug: values.slug, siteName: setup.siteName[l], peers: setup.peers[l], checkSlug: l === 'en' };
+      if (kind === 'article') {
+        const draft = draftFor(values as SeoFields, l);
+        out[l] = draft ? analyzeSeo(draft, ctx) : null;
+      } else {
+        const category = setup.categories?.[values.category_id] ?? { en: '', pt: '' };
+        const draft = productDraftFor(values as ProductSeoFields, l, { category, images: imageCount });
+        out[l] = draft ? analyzeProductSeo(draft, ctx) : null;
+      }
     }
     return out;
-  }, [values, setup]);
+  }, [values, setup, kind, imageCount]);
 
   /** Inserts text at the cursor in the article body of the current language. */
   const insert = useCallback((text: string) => {
-    const body = form()?.elements.namedItem(lang === 'en' ? 'body' : 'body_pt') as HTMLTextAreaElement | null;
+    const body = form()?.elements.namedItem(lang === 'en' ? cfg.body : `${cfg.body}_pt`) as HTMLTextAreaElement | null;
     if (!body) return;
     const start = body.selectionStart ?? body.value.length;
     const end = body.selectionEnd ?? start;
@@ -133,9 +169,10 @@ export function SeoProvider({ post, setup, children }: { post?: BlogPost; setup:
     body.dispatchEvent(new Event('input', { bubbles: true }));
     body.focus();
     toast.success('Link added to the article text.');
-  }, [form, lang]);
+  }, [form, lang, cfg]);
 
-  const state = useMemo(() => ({ lang, setLang, values, reports, setup, image, publishedDate, insert, dirty }), [lang, values, reports, setup, image, publishedDate, insert, dirty]);
+  const state = useMemo(() => ({ kind, lang, setLang, values, reports, setup, image, publishedDate, insert, dirty }),
+    [kind, lang, values, reports, setup, image, publishedDate, insert, dirty]);
   return <Ctx.Provider value={state}><div ref={ref} className="contents">{children}</div></Ctx.Provider>;
 }
 
@@ -214,16 +251,28 @@ function History({ points, current }: { points: { day: string; score: number }[]
 
 /* ---------- main-column card: SEO fields and previews ---------- */
 
-export function SeoFieldsCard({ post }: { post?: BlogPost }) {
-  const { lang, values, reports, setup, image, publishedDate } = useSeo();
+export function SeoFieldsCard({ item }: { item?: object }) {
+  const { kind, lang, values, reports, setup, image, publishedDate } = useSeo();
+  const cfg = KINDS[kind];
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
   const report = reports[lang];
-  const titleFallback = lang === 'pt' && values.title_pt.trim() ? values.title_pt : values.title;
-  const excerptFallback = lang === 'pt' && values.excerpt_pt.trim() ? values.excerpt_pt : values.excerpt;
-  const slug = values.slug || 'your-article';
-  const date = new Date(`${publishedDate}T12:00:00`).toLocaleDateString(lang === 'pt' ? 'pt-PT' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const local = (base: string, l: SeoLang = lang) => (l === 'pt' && values[`${base}_pt`]?.trim() ? values[`${base}_pt`] : values[base]) ?? '';
+  const slug = values.slug || `your-${cfg.noun}`;
   const title = report?.stats.displayTitle ?? '';
   const description = report?.stats.displayDescription ?? '';
+  const locale = lang === 'pt' ? 'pt-PT' : 'en-GB';
+
+  // Articles show their date in Google; products can show price and stock (from the Product structured data).
+  let snippet = '';
+  if (kind === 'article') {
+    snippet = new Date(`${publishedDate}T12:00:00`).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  } else {
+    const price = Number(String(values.price).replace(',', '.'));
+    const parts: string[] = [];
+    if (values.price && Number.isFinite(price)) parts.push(new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(price));
+    if (values.stock !== '') parts.push(Number(values.stock) > 0 ? (lang === 'pt' ? 'Em stock' : 'In stock') : (lang === 'pt' ? 'Esgotado' : 'Out of stock'));
+    snippet = parts.join(' · ');
+  }
 
   return (
     <Card>
@@ -235,29 +284,27 @@ export function SeoFieldsCard({ post }: { post?: BlogPost }) {
         {/* Both languages stay mounted so every field is submitted; only the chosen one is shown. */}
         {(['en', 'pt'] as const).map((l) => {
           const s = l === 'pt' ? '_pt' : '';
-          const saved = (base: string) => post?.[`${base}${s}` as keyof BlogPost] as string | undefined;
+          const saved = (base: string) => str((item as Record<string, unknown> | undefined)?.[`${base}${s}`]) || undefined;
           return (
             <div key={l} hidden={lang !== l} className="grid gap-4">
-              {l === 'pt' && !values.body_pt.trim() ? (
-                <p className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning">Write the Portuguese article text to get a Portuguese SEO score.</p>
-              ) : null}
-              <Field label="Focus keyword" htmlFor={`focus_keyword${s}`} hint="The main phrase people type into Google to find this article, e.g. “cracked phone screen”.">
+              {l === 'pt' && !reports.pt ? <p className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning">{cfg.noPt}</p> : null}
+              <Field label="Focus keyword" htmlFor={`focus_keyword${s}`} hint={cfg.keywordHint}>
                 <Input id={`focus_keyword${s}`} name={`focus_keyword${s}`} defaultValue={saved('focus_keyword')} maxLength={80} autoComplete="off" />
               </Field>
-              <Field label="Related keyphrases" htmlFor={`related_keywords${s}`} optional hint="Synonyms and other ways people search for this, separated by commas, e.g. “broken screen, screen repair”.">
+              <Field label="Related keyphrases" htmlFor={`related_keywords${s}`} optional hint={cfg.relatedHint}>
                 <Input id={`related_keywords${s}`} name={`related_keywords${s}`} defaultValue={saved('related_keywords')} maxLength={300} autoComplete="off" />
               </Field>
-              <Field label="SEO title" htmlFor={`seo_title${s}`} optional hint="Shown as the blue link in Google. Leave blank to use the article title followed by the shop name.">
+              <Field label="SEO title" htmlFor={`seo_title${s}`} optional hint={`Shown as the blue link in Google. Leave blank to use the ${kind === 'article' ? 'article title' : 'product name'} followed by the shop name.`}>
                 <Input id={`seo_title${s}`} name={`seo_title${s}`} defaultValue={saved('seo_title')} maxLength={120}
-                  placeholder={[l === 'pt' && values.title_pt.trim() ? values.title_pt : values.title, setup.siteName[l]].filter(Boolean).join(' | ')} />
+                  placeholder={[local(cfg.title, l), setup.siteName[l]].filter(Boolean).join(' | ')} />
                 <Meter length={reports[l]?.stats.displayTitle.length ?? 0} min={SEO_LIMITS.title.min} max={SEO_LIMITS.title.max} label="shown in Google" />
               </Field>
-              <Field label="Meta description" htmlFor={`seo_description${s}`} optional hint="The grey text under the link in Google. Leave blank to use the summary.">
+              <Field label="Meta description" htmlFor={`seo_description${s}`} optional hint={`The grey text under the link in Google. Leave blank to use ${cfg.summaryName}.`}>
                 <Textarea id={`seo_description${s}`} name={`seo_description${s}`} defaultValue={saved('seo_description')} rows={3} maxLength={320}
-                  placeholder={l === 'pt' && values.excerpt_pt.trim() ? values.excerpt_pt : values.excerpt} />
+                  placeholder={local(cfg.summary, l)} />
                 <Meter length={reports[l]?.stats.displayDescription.length ?? 0} min={SEO_LIMITS.description.min} max={SEO_LIMITS.description.max} label="shown in Google" />
               </Field>
-              <Field label="Cover image alt text" htmlFor={`image_alt${s}`} hint={l === 'pt' ? 'Leave blank to use the English alt text.' : 'Describes the photo for search engines and screen readers.'}>
+              <Field label={cfg.altLabel} htmlFor={`image_alt${s}`} hint={l === 'pt' ? 'Leave blank to use the English alt text.' : 'Describes the photo for search engines and screen readers.'}>
                 <Input id={`image_alt${s}`} name={`image_alt${s}`} defaultValue={saved('image_alt')} maxLength={160} />
               </Field>
             </div>
@@ -281,14 +328,15 @@ export function SeoFieldsCard({ post }: { post?: BlogPost }) {
               <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#f1f3f4] text-[11px] font-bold text-[#202124]">{(setup.siteName[lang] || 'S').slice(0, 1)}</span>
               <div className="min-w-0 leading-tight">
                 <div className="truncate text-[14px] text-[#202124]">{setup.siteName[lang]}</div>
-                <div className="truncate text-[12px] text-[#4d5156]">https://{setup.host} › blog › {slug}</div>
+                <div className="truncate text-[12px] text-[#4d5156]">https://{setup.host} › {cfg.path} › {slug}</div>
               </div>
             </div>
-            <div className={cn('mt-2 leading-snug text-[#1a0dab]', device === 'mobile' ? 'text-[18px]' : 'text-[20px]')}>{truncate(title || 'Article title', device === 'mobile' ? 70 : 60)}</div>
+            <div className={cn('mt-2 leading-snug text-[#1a0dab]', device === 'mobile' ? 'text-[18px]' : 'text-[20px]')}>{truncate(title || (kind === 'article' ? 'Article title' : 'Product name'), device === 'mobile' ? 70 : 60)}</div>
             <p className="mt-1 text-[14px] leading-[1.58] text-[#4d5156]">
-              <span className="text-[#70757a]">{date} — </span>
-              {truncate(description || 'Write a summary or meta description to control the text shown here.', device === 'mobile' ? 120 : 160)}
+              {kind === 'article' && snippet ? <span className="text-[#70757a]">{snippet} — </span> : null}
+              {truncate(description || `Write ${cfg.summaryName} or a meta description to control the text shown here.`, device === 'mobile' ? 120 : 160)}
             </p>
+            {kind === 'product' && snippet ? <p className="mt-1 text-[13px] text-[#4d5156]">{snippet}</p> : null}
           </div>
         </div>
 
@@ -297,12 +345,12 @@ export function SeoFieldsCard({ post }: { post?: BlogPost }) {
           <div className="max-w-[520px] overflow-hidden rounded-xl border bg-card">
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={image} alt="" className="aspect-[1.91/1] w-full bg-muted object-cover" />
-            ) : <div className="grid aspect-[1.91/1] place-items-center bg-muted text-sm text-muted-foreground">Upload a cover image</div>}
+              <img src={image} alt="" className={cn('aspect-[1.91/1] w-full bg-muted', kind === 'product' ? 'object-contain bg-white' : 'object-cover')} />
+            ) : <div className="grid aspect-[1.91/1] place-items-center bg-muted text-sm text-muted-foreground">{kind === 'article' ? 'Upload a cover image' : 'Upload a product photo'}</div>}
             <div className="border-t bg-muted/40 px-4 py-3">
               <div className="text-[11px] tracking-wide text-muted-foreground uppercase">{setup.host}</div>
-              <div className="mt-0.5 line-clamp-1 font-semibold">{(lang === 'pt' ? values.seo_title_pt : values.seo_title).trim() || titleFallback || 'Article title'}</div>
-              <div className="line-clamp-2 text-sm text-muted-foreground">{description || excerptFallback}</div>
+              <div className="mt-0.5 line-clamp-1 font-semibold">{(lang === 'pt' ? values.seo_title_pt : values.seo_title)?.trim() || local(cfg.title) || (kind === 'article' ? 'Article title' : 'Product name')}</div>
+              <div className="line-clamp-2 text-sm text-muted-foreground">{description || local(cfg.summary)}</div>
             </div>
           </div>
         </div>
@@ -317,15 +365,13 @@ const ORDER: SeoStatus[] = ['bad', 'ok', 'good'];
 const ICON = { good: CircleCheck, ok: CircleAlert, bad: CircleX } as const;
 
 export function SeoScoreCard() {
-  const { lang, reports, values, setup, insert, dirty } = useSeo();
+  const { kind, lang, reports, values, setup, insert, dirty } = useSeo();
   const report = reports[lang];
   const history = setup.history[lang];
   const lastSaved = history.at(-1)?.score;
   const wins = useMemo(() => (report ? report.checks.filter((c) => c.gain >= 0.5).sort((a, b) => b.gain - a.gain).slice(0, 3) : []), [report]);
-  const suggestions = useMemo(
-    () => linkSuggestions(lang === 'en' ? values.body : values.body_pt, setup.peers[lang]),
-    [lang, values.body, values.body_pt, setup.peers],
-  );
+  const body = lang === 'en' ? values.body : values.body_pt;
+  const suggestions = useMemo(() => (kind === 'article' ? linkSuggestions(body ?? '', setup.peers[lang]) : []), [kind, body, setup.peers, lang]);
 
   const groups = useMemo(() => {
     if (!report) return [];
@@ -334,6 +380,22 @@ export function SeoScoreCard() {
       return { g, checks, problems: checks.filter((c) => c.status !== 'good').length };
     }).filter((x) => x.checks.length);
   }, [report]);
+
+  const tiles: [string, string | number][] = !report ? [] : kind === 'article' ? [
+    ['Words', report.stats.words],
+    ['Read time', `${report.stats.readingMinutes} min`],
+    ['Keyword', `${report.stats.keywordCount}×`],
+    ['Density', `${report.stats.density.toFixed(1)}%`],
+    ['Readability', Math.round(report.stats.readingEase)],
+    ['Links', report.stats.internalLinks + report.stats.externalLinks],
+  ] : [
+    ['Words', report.stats.words],
+    ['Keyword', `${report.stats.keywordCount}×`],
+    ['Density', `${report.stats.density.toFixed(1)}%`],
+    ['Photos', report.stats.images ?? 0],
+    ['Features', report.stats.features ?? 0],
+    ['Specs', report.stats.specs ?? 0],
+  ];
 
   return (
     <Card>
@@ -377,14 +439,7 @@ export function SeoScoreCard() {
             {history.length > 1 ? <History points={history} current={report.score} /> : null}
 
             <dl className="grid grid-cols-3 gap-2 text-center">
-              {[
-                ['Words', report.stats.words],
-                ['Read time', `${report.stats.readingMinutes} min`],
-                ['Keyword', `${report.stats.keywordCount}×`],
-                ['Density', `${report.stats.density.toFixed(1)}%`],
-                ['Readability', Math.round(report.stats.readingEase)],
-                ['Links', report.stats.internalLinks + report.stats.externalLinks],
-              ].map(([k, v]) => (
+              {tiles.map(([k, v]) => (
                 <div key={k} className="rounded-lg bg-muted/60 px-1 py-2">
                   <dd className="text-sm font-semibold tabular-nums">{v}</dd>
                   <dt className="text-[11px] text-muted-foreground">{k}</dt>
@@ -418,7 +473,7 @@ export function SeoScoreCard() {
             </div>
           </>
         ) : (
-          <p className="text-sm text-muted-foreground">No Portuguese article text yet. Visitors browsing in Portuguese see the English version.</p>
+          <p className="text-sm text-muted-foreground">No Portuguese text yet. Visitors browsing in Portuguese see the English version.</p>
         )}
 
         {suggestions.length ? (

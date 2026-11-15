@@ -10,6 +10,10 @@ export const ADDED_COLUMNS: [table: string, column: string, definition: string][
   ...['focus_keyword', 'focus_keyword_pt', 'seo_title', 'seo_title_pt', 'seo_description', 'seo_description_pt', 'image_alt', 'image_alt_pt',
     'related_keywords', 'related_keywords_pt']
     .map((c) => ['blog_posts', c, "TEXT NOT NULL DEFAULT ''"] as [string, string, string]),
+  // Product SEO: the same fields as the blog; image alt text describes the main photo.
+  ...['focus_keyword', 'focus_keyword_pt', 'related_keywords', 'related_keywords_pt', 'seo_title', 'seo_title_pt',
+    'seo_description', 'seo_description_pt', 'image_alt', 'image_alt_pt']
+    .map((c) => ['products', c, "TEXT NOT NULL DEFAULT ''"] as [string, string, string]),
 ];
 
 export const SCHEMA = `
@@ -210,6 +214,15 @@ CREATE TABLE IF NOT EXISTS blog_seo_history (
   day     TEXT NOT NULL,
   score   INTEGER NOT NULL,
   PRIMARY KEY (post_id, lang, day)
+);
+
+-- The same for products.
+CREATE TABLE IF NOT EXISTS product_seo_history (
+  product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  lang       TEXT NOT NULL CHECK (lang IN ('en','pt')),
+  day        TEXT NOT NULL,
+  score      INTEGER NOT NULL,
+  PRIMARY KEY (product_id, lang, day)
 );
 
 -- Places customers can choose at checkout. fee_pence NULL means "use the default delivery charge".
