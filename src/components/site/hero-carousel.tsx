@@ -42,7 +42,7 @@ export function HeroCarousel({ slides, labels, children }: { slides: string[]; l
     <section
       aria-roledescription="carousel"
       aria-label={labels.region}
-      className="relative isolate overflow-hidden bg-[#e8f1ff] text-ink md:flex md:min-h-[460px] md:h-[min(42vw,720px)] md:items-center"
+      className="relative isolate overflow-hidden bg-background text-ink md:flex md:min-h-[460px] md:h-[min(42vw,720px)] md:items-center"
       onMouseEnter={() => setHeld(true)}
       onMouseLeave={() => setHeld(false)}
       onFocus={() => setHeld(true)}

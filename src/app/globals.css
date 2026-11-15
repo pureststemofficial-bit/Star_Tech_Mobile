@@ -3,32 +3,33 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Startech design tokens. Warm porcelain and midnight ink, with the logo's cobalt as the one accent. */
+/* Startech design tokens. Light sky-blue surfaces to match the hero banners, deep navy for the header and
+   footer, and the logo's cobalt as the one accent. */
 :root {
   --radius: 0.875rem;
-  --background: #f6f5f1;
-  --foreground: #0e1420;
+  --background: #eef5ff;
+  --foreground: #0b1a33;
   --card: #ffffff;
-  --card-foreground: #0e1420;
+  --card-foreground: #0b1a33;
   --popover: #ffffff;
-  --popover-foreground: #0e1420;
-  --primary: #1a56e8;
+  --popover-foreground: #0b1a33;
+  --primary: #1e63ff;
   --primary-foreground: #ffffff;
-  --secondary: #e9eefb;
-  --secondary-foreground: #0e2a6b;
-  --muted: #eeece6;
-  --muted-foreground: #565f6e;
-  --accent: #e9eefb;
-  --accent-foreground: #0e2a6b;
+  --secondary: #dde9ff;
+  --secondary-foreground: #0a2a66;
+  --muted: #e2ecfb;
+  --muted-foreground: #4b5a73;
+  --accent: #dde9ff;
+  --accent-foreground: #0a2a66;
   --destructive: #b42318;
-  --border: #e3e0d8;
-  --input: #d6d3ca;
-  --ring: #1a56e8;
+  --border: #d2e0f5;
+  --input: #c3d4ee;
+  --ring: #1e63ff;
 
-  --ink: #0a0f1a;
-  --ink-soft: #141b2a;
+  --ink: #071a3d;
+  --ink-soft: #0e2550;
   --navy: #0a2a66;
-  --navy-deep: #04122e;
+  --navy-deep: #041330;
   --cobalt: #1e63ff;
   --sky: #8db4ff;
   --silver: #c0c7d6;
@@ -38,7 +39,7 @@
   --warning-soft: #fdf0dc;
   --star: #e8a020;
 
-  --sidebar: #0a0f1a;
+  --sidebar: #071a3d;
   --sidebar-foreground: #c9d2e3;
   --sidebar-primary: #1e63ff;
   --sidebar-primary-foreground: #ffffff;
@@ -151,7 +152,7 @@
 @keyframes marquee { to { transform: translateX(-50%); } }
 @keyframes pop { 0% { transform: scale(0.4); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
 @keyframes nudge { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(6px); opacity: 1; } }
-@keyframes header-solid { to { background-color: rgb(10 15 26 / 0.94); box-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.7); } }
+@keyframes header-solid { to { background-color: rgb(7 26 61 / 0.94); box-shadow: 0 10px 30px -18px rgb(4 19 48 / 0.7); } }
 
 .page-enter { animation: fade 0.45s ease-out backwards; }
 .hero-rise { animation: rise 1s var(--ease-out-soft) backwards; animation-delay: calc(var(--i, 0) * 110ms + 120ms); }
