@@ -46,20 +46,33 @@ export function StatusBadge({ status }: { status: string }) {
   return <Badge variant={STATUS_VARIANT[status] ?? 'outline'}>{STATUS_KEYS.has(status) ? t(`status.${status}` as ClientKey) : label(status)}</Badge>;
 }
 
-/** Full-width dark page header, optionally over a photograph. */
-export function PageBanner({ title, subtitle, image, children }: { title: React.ReactNode; subtitle?: React.ReactNode; image?: string; children?: React.ReactNode }) {
+/**
+ * Full-width page header. Dark by default, optionally over a dimmed photograph. `tone="light"` is for
+ * bright studio banners (like the home carousel's): the photo shows in full colour with the products
+ * on the right, a white wash keeps the left side readable, and the text is dark.
+ */
+export function PageBanner({ title, subtitle, image, tone = 'dark', children }: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  image?: string;
+  tone?: 'dark' | 'light';
+  children?: React.ReactNode;
+}) {
+  const light = tone === 'light' && !!image;
   return (
-    <section className="relative isolate overflow-hidden bg-ink text-white">
+    <section className={cn('relative isolate overflow-hidden', light ? 'bg-background text-ink md:flex md:min-h-[380px] md:items-center' : 'bg-ink text-white')}>
       {image ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image} alt="" width={2000} height={800} fetchPriority="high" className="hero-settle absolute inset-0 -z-20 size-full object-cover opacity-55" />
-          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-ink via-ink/75 to-ink/10" />
+          <img src={image} alt="" width={1600} height={670} fetchPriority="high"
+            className={cn('hero-settle absolute inset-0 -z-20 size-full object-cover', light ? 'object-[80%_center] md:object-[70%_center]' : 'opacity-55')} />
+          <div aria-hidden="true" className={cn('absolute inset-0 -z-10 bg-gradient-to-r',
+            light ? 'from-white/90 via-white/65 to-white/10 md:from-white/80 md:via-white/30 md:to-transparent' : 'from-ink via-ink/75 to-ink/10')} />
         </>
       ) : null}
-      <div className="mx-auto max-w-[1320px] px-4 py-14 sm:px-6 md:py-20">
+      <div className={cn('mx-auto max-w-[1320px] px-4 py-14 sm:px-6 md:py-20', light && 'w-full')}>
         <h1 className="hero-rise font-display text-[clamp(2.5rem,6vw,4.75rem)] leading-[1.04]">{title}</h1>
-        {subtitle ? <p className="hero-rise mt-3 max-w-xl text-base text-white/80 md:text-lg" style={{ '--i': 1 } as React.CSSProperties}>{subtitle}</p> : null}
+        {subtitle ? <p className={cn('hero-rise mt-3 max-w-xl text-base md:text-lg', light ? 'text-ink/75' : 'text-white/80')} style={{ '--i': 1 } as React.CSSProperties}>{subtitle}</p> : null}
         {children}
       </div>
     </section>

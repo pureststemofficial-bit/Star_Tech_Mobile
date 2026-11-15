@@ -12,6 +12,16 @@ import { str, int, oneOf } from '@/lib/validate';
 import { getI18n } from '@/lib/i18n/server';
 import { pick } from '@/lib/i18n/config';
 
+/* Banner photo for each category page (made from public/hero_section_img). Other pages use the general shop photo. */
+const CATEGORY_BANNERS: Record<string, string> = {
+  'mobile-phones': '/img/categories/mobile-phones.webp',
+  laptops: '/img/categories/laptops.webp',
+  speakers: '/img/categories/speakers.webp',
+  headphones: '/img/categories/headphones.webp',
+  accessories: '/img/categories/accessories.webp',
+  gaming: '/img/categories/gaming.webp',
+};
+
 type SP = Promise<Record<string, string | string[] | undefined>>;
 
 const asArray = (v: string | string[] | undefined) =>
@@ -57,7 +67,8 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   return (
     <>
       <PageBanner
-        image="/img/photos/shop.webp"
+        image={(activeCat && CATEGORY_BANNERS[activeCat.slug]) || '/img/photos/shop.webp'}
+        tone={activeCat && CATEGORY_BANNERS[activeCat.slug] ? 'light' : 'dark'}
         title={activeCat ? pick(activeCat, 'name', locale) : filters.q ? t('shop.results', { q: filters.q }) : site.shop_title}
         subtitle={site.shop_subtitle}
       />
