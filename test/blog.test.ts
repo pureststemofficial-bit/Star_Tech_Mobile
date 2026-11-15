@@ -32,6 +32,16 @@ test('starter articles are complete in both languages and their images exist', (
   }
 });
 
+test('starter articles target distinct focus keywords in both languages', () => {
+  const posts = all<BlogPost>('SELECT * FROM blog_posts');
+  for (const lang of ['', '_pt'] as const) {
+    const keywords = posts.map((p) => p[`focus_keyword${lang}`].toLowerCase());
+    assert.ok(keywords.every(Boolean), `missing focus_keyword${lang}`);
+    assert.equal(new Set(keywords).size, keywords.length, `duplicate focus_keyword${lang}`);
+    assert.ok(posts.every((p) => p[`related_keywords${lang}`].trim()), `missing related_keywords${lang}`);
+  }
+});
+
 test('every article is scored for SEO, and saved SEO fields feed the score', () => {
   const before = seoOverview();
   assert.equal(before.length, 4);
@@ -41,12 +51,13 @@ test('every article is scored for SEO, and saved SEO fields feed the score', () 
   }
   const target = before[0].row;
   run("UPDATE blog_posts SET focus_keyword = 'phone', image_alt = 'A phone' WHERE id = ?", target.id);
+  assert.equal(seoOverview().find((p) => p.row.id === target.id)!.row.focus_keyword, 'phone');
   const after = seoOverview().find((p) => p.row.id === target.id)!;
   assert.equal(after.en.checks.find((c) => c.id === 'kw-set')?.status, 'good');
   const setup = seoSetup(target.id);
   assert.equal(setup.peers.en.length, 3);
   assert.ok(!setup.peers.en.some((p) => p.id === target.id));
-  run("UPDATE blog_posts SET focus_keyword = '', image_alt = '' WHERE id = ?", target.id);
+  run('UPDATE blog_posts SET focus_keyword = ?, image_alt = ? WHERE id = ?', target.focus_keyword, target.image_alt, target.id);
 });
 
 test('saving records one SEO score per language per day, and deleting the article removes them', () => {

@@ -190,3 +190,34 @@ export function seedBlog({ run }: Pick<Db, 'run'>) {
       p.slug, p.published, p.image, p.image, p.category, p.category_pt, p.title, p.title_pt, p.excerpt, p.excerpt_pt, p.body, p.body_pt, p.cta_href, p.cta_label, p.cta_label_pt);
   }
 }
+
+/* SEO keywords for the starter articles: [focus, related] per language. */
+const STARTER_KEYWORDS: Record<string, { en: [string, string]; pt: [string, string] }> = {
+  'cracked-phone-screen-what-to-do': {
+    en: ['cracked screen', 'phone screen repair, broken screen, screen replacement'],
+    pt: ['ecrã partido', 'reparação de ecrã, ecrã do telemóvel, substituição do ecrã'],
+  },
+  'make-your-phone-battery-last': {
+    en: ['phone battery', 'battery life, battery health, charging habits'],
+    pt: ['bateria do telemóvel', 'autonomia da bateria, saúde da bateria, carregar o telemóvel'],
+  },
+  'choosing-the-right-usb-c-charger': {
+    en: ['USB-C charger', 'fast charging, USB-C cable, charger wattage'],
+    pt: ['carregador USB-C', 'carregamento rápido, cabo USB-C, potência do carregador'],
+  },
+  'phone-case-and-screen-protector-guide': {
+    en: ['screen protector', 'phone case, tempered glass, drop protection'],
+    pt: ['protetor de ecrã', 'capa para telemóvel, vidro temperado, proteção contra quedas'],
+  },
+};
+
+/**
+ * Gives the starter articles their focus and related keyphrases. Each language is only filled in
+ * while its focus keyword is blank, so keywords an admin has chosen are never overwritten.
+ */
+export function applyStarterKeywords({ run }: Pick<Db, 'run'>) {
+  for (const [slug, k] of Object.entries(STARTER_KEYWORDS)) {
+    run(`UPDATE blog_posts SET focus_keyword = ?, related_keywords = ? WHERE slug = ? AND focus_keyword = ''`, k.en[0], k.en[1], slug);
+    run(`UPDATE blog_posts SET focus_keyword_pt = ?, related_keywords_pt = ? WHERE slug = ? AND focus_keyword_pt = ''`, k.pt[0], k.pt[1], slug);
+  }
+}
