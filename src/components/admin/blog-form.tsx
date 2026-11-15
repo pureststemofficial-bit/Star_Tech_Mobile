@@ -7,17 +7,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { ActionForm, ConfirmButton, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
 import { FormattingHelp } from '@/components/admin/formatting-help';
+import { SeoFieldsCard, SeoProvider, SeoScoreCard } from '@/components/admin/blog-seo';
 import { saveBlogPost, deleteBlogPost } from '@/actions/admin';
 import type { BlogPost } from '@/lib/types';
+import type { SeoSetup } from '@/lib/seo';
 
-/** Create / edit form for a blog article. */
-export function BlogForm({ post }: { post?: BlogPost }) {
+/** Create / edit form for a blog article, with a live SEO score beside it. */
+export function BlogForm({ post, seo }: { post?: BlogPost; seo: SeoSetup }) {
   const p = post;
   return (
     <>
       {/* The grid sits inside the form so a validation message spans the full width above it. */}
       <ActionForm action={saveBlogPost}>
         <input type="hidden" name="id" value={p?.id ?? ''} />
+        <SeoProvider post={p} setup={seo}>
         <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[1fr_340px]">
         <div className="grid grid-cols-1 gap-5">
           <Card>
@@ -43,8 +46,10 @@ export function BlogForm({ post }: { post?: BlogPost }) {
               <Field label="Article text" htmlFor="body_pt"><Textarea id="body_pt" name="body_pt" defaultValue={p?.body_pt} rows={20} maxLength={50000} className="font-mono text-sm" /></Field>
             </CardContent>
           </Card>
+          <SeoFieldsCard post={p} />
         </div>
-        <div className="grid gap-5 xl:sticky xl:top-20">
+        {/* Stretched to the full form height so the SEO score can stay in view while writing. */}
+        <div className="flex flex-col gap-5 self-stretch">
           <Card>
             <CardHeader><CardTitle className="text-base">Cover image</CardTitle></CardHeader>
             <CardContent className="grid gap-4">
@@ -81,8 +86,12 @@ export function BlogForm({ post }: { post?: BlogPost }) {
           </Card>
           <FormattingHelp />
           <SubmitButton size="lg" className="w-full">{p ? 'Save changes' : 'Create article'}</SubmitButton>
+          <div className="xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:rounded-xl">
+            <SeoScoreCard />
+          </div>
         </div>
         </div>
+        </SeoProvider>
       </ActionForm>
       {p ? (
         <form action={deleteBlogPost} className="border-t pt-4">

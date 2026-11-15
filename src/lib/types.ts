@@ -198,6 +198,21 @@ export interface BlogPost {
   cta_href: string;
   cta_label: string;
   cta_label_pt: string;
+  /** SEO: the search phrase the article targets. */
+  focus_keyword: string;
+  focus_keyword_pt: string;
+  /** SEO: overrides the page title in Google; blank uses "Title | Site name". */
+  seo_title: string;
+  seo_title_pt: string;
+  /** SEO: overrides the meta description; blank uses the summary. */
+  seo_description: string;
+  seo_description_pt: string;
+  /** Alt text for the cover image. */
+  image_alt: string;
+  image_alt_pt: string;
+  /** SEO: comma-separated synonyms and related phrases. */
+  related_keywords: string;
+  related_keywords_pt: string;
   is_active: number;
   created_at: string;
   updated_at: string;

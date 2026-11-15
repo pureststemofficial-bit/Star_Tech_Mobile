@@ -13,7 +13,7 @@ import { seedBlog } from './blog-seed.ts';
  * touches the database) and kept on globalThis so dev hot-reload doesn't open more.
  * Every query is parameterised; nothing user-supplied is concatenated into SQL.
  */
-interface DbState { conn: DatabaseSync; cache: Map<string, StatementSync>; columns?: number }
+interface DbState { conn: DatabaseSync; cache: Map<string, StatementSync>; columns?: number; schema?: string }
 const g = globalThis as typeof globalThis & { __startechDb?: DbState };
 
 // `next build` prerenders a few pages (e.g. the 404 page, which shows site settings). Give it a
@@ -30,10 +30,12 @@ function addColumns(conn: DatabaseSync) {
 
 function state(): DbState {
   if (g.__startechDb) {
-    // Dev hot-reload keeps the old connection, so pick up columns added since it was opened.
-    if (g.__startechDb.columns !== ADDED_COLUMNS.length) {
+    // Dev hot-reload keeps the old connection, so pick up tables and columns added since it was opened.
+    if (g.__startechDb.columns !== ADDED_COLUMNS.length || g.__startechDb.schema !== SCHEMA) {
+      g.__startechDb.conn.exec(SCHEMA);
       addColumns(g.__startechDb.conn);
       g.__startechDb.columns = ADDED_COLUMNS.length;
+      g.__startechDb.schema = SCHEMA;
       g.__startechDb.cache.clear();
     }
     return g.__startechDb;
@@ -49,7 +51,7 @@ function state(): DbState {
   `);
   conn.exec(SCHEMA);
   addColumns(conn);
-  g.__startechDb = { conn, cache: new Map(), columns: ADDED_COLUMNS.length };
+  g.__startechDb = { conn, cache: new Map(), columns: ADDED_COLUMNS.length, schema: SCHEMA };
   // First connection in this process: make sure demo data, pages and an admin account exist.
   seed({ get, all, run, tx }, { createAdmin: !isBuild });
   // Checked inside the write lock so two processes starting together can't both convert.

@@ -11,6 +11,8 @@ import { render } from '@/lib/markdown';
 import { getI18n } from '@/lib/i18n/server';
 import { pick } from '@/lib/i18n/config';
 import { str } from '@/lib/validate';
+import { localizedSettings } from '@/lib/store';
+import { siteUrl } from '@/lib/config';
 
 type Params = Promise<{ slug: string }>;
 
@@ -19,12 +21,48 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { t, locale } = await getI18n();
   if (!post) return { title: t('blog.notFound') };
   const title = pick(post, 'title', locale);
-  const description = pick(post, 'excerpt', locale);
+  // Custom SEO fields win; a custom SEO title is used exactly as written, without the "| Site" suffix.
+  const seoTitle = (locale === 'pt' ? post.seo_title_pt : post.seo_title).trim();
+  const description = (locale === 'pt' ? post.seo_description_pt : post.seo_description).trim() || pick(post, 'excerpt', locale);
+  const keyword = (locale === 'pt' ? post.focus_keyword_pt : post.focus_keyword).trim();
+  const alt = pick(post, 'image_alt', locale);
   return {
-    title,
+    title: seoTitle ? { absolute: seoTitle } : title,
     description,
-    openGraph: { type: 'article', title, description, publishedTime: post.published, images: [{ url: post.image }] },
+    ...(keyword ? { keywords: [keyword] } : {}),
+    alternates: { canonical: `/blog/${post.slug}` },
+    openGraph: {
+      type: 'article', title: seoTitle || title, description, url: `/blog/${post.slug}`,
+      publishedTime: post.published, modifiedTime: `${post.updated_at.replace(' ', 'T')}Z`, section: pick(post, 'category', locale),
+      images: [{ url: post.image, width: 1600, height: 900, ...(alt ? { alt } : {}) }],
+    },
+    twitter: { card: 'summary_large_image', title: seoTitle || title, description, images: [post.image] },
   };
+}
+
+/** schema.org BlogPosting, so search engines can show the date, image and author in results. */
+function articleJsonLd(post: NonNullable<ReturnType<typeof findPost>>, locale: 'en' | 'pt') {
+  const base = siteUrl()?.origin ?? '';
+  const site = localizedSettings(locale);
+  const url = `${base}/blog/${post.slug}`;
+  const keyword = (locale === 'pt' ? post.focus_keyword_pt : post.focus_keyword).trim();
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: pick(post, 'title', locale),
+    description: (locale === 'pt' ? post.seo_description_pt : post.seo_description).trim() || pick(post, 'excerpt', locale),
+    image: [`${base}${post.image}`],
+    datePublished: post.published,
+    dateModified: `${post.updated_at.replace(' ', 'T')}Z`,
+    articleSection: pick(post, 'category', locale),
+    inLanguage: locale === 'pt' ? 'pt-PT' : 'en-GB',
+    ...(keyword ? { keywords: keyword } : {}),
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    author: { '@type': 'Organization', name: site.site_name, url: base || undefined },
+    publisher: { '@type': 'Organization', name: site.site_name, logo: { '@type': 'ImageObject', url: `${base}/img/favicon.svg` } },
+  };
+  // Escaping "<" stops article text from closing the script tag.
+  return JSON.stringify(data).replace(/</g, '\\u003c');
 }
 
 export default async function BlogPostPage({ params }: { params: Params }) {
@@ -35,6 +73,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: articleJsonLd(post, locale) }} />
       <PageBanner title={pick(post, 'title', locale)} subtitle={pick(post, 'excerpt', locale)}>
         <div className="hero-rise mt-6" style={{ '--i': 2 } as React.CSSProperties}>
           <PostMeta post={post} className="text-sm text-white/75" />
@@ -48,7 +87,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
           </Link>
           <div className="overflow-hidden rounded-[1.75rem] bg-ink">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={post.image} alt="" width={1600} height={900} fetchPriority="high" decoding="async" className="aspect-[16/9] size-full object-cover" />
+            <img src={post.image} alt={pick(post, 'image_alt', locale)} width={1600} height={900} fetchPriority="high" decoding="async" className="aspect-[16/9] size-full object-cover" />
           </div>
           {/* HTML-escaped by lib/markdown. */}
           <div className="prose-content article mt-9 text-[17px]" dangerouslySetInnerHTML={{ __html: render(pick(post, 'body', locale)) }} />

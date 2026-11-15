@@ -6,6 +6,10 @@ export const ADDED_COLUMNS: [table: string, column: string, definition: string][
   ['orders', 'stripe_session_id', "TEXT NOT NULL DEFAULT ''"],
   ['products', 'is_popular', 'INTEGER NOT NULL DEFAULT 0'],
   ['products', 'is_new_arrival', 'INTEGER NOT NULL DEFAULT 0'],
+  // Blog SEO: focus keyword, search-listing overrides and cover alt text, in both languages.
+  ...['focus_keyword', 'focus_keyword_pt', 'seo_title', 'seo_title_pt', 'seo_description', 'seo_description_pt', 'image_alt', 'image_alt_pt',
+    'related_keywords', 'related_keywords_pt']
+    .map((c) => ['blog_posts', c, "TEXT NOT NULL DEFAULT ''"] as [string, string, string]),
 ];
 
 export const SCHEMA = `
@@ -198,6 +202,15 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_blog_listing ON blog_posts(is_active, published);
+
+-- The SEO score of each article whenever it is saved: one row per article, language and day.
+CREATE TABLE IF NOT EXISTS blog_seo_history (
+  post_id INTEGER NOT NULL REFERENCES blog_posts(id) ON DELETE CASCADE,
+  lang    TEXT NOT NULL CHECK (lang IN ('en','pt')),
+  day     TEXT NOT NULL,
+  score   INTEGER NOT NULL,
+  PRIMARY KEY (post_id, lang, day)
+);
 
 -- Places customers can choose at checkout. fee_pence NULL means "use the default delivery charge".
 CREATE TABLE IF NOT EXISTS delivery_cities (

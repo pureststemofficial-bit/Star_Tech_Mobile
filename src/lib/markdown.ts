@@ -1,13 +1,25 @@
 /*
  * Minimal, XSS-safe text formatter for admin-edited pages.
  * Everything is HTML-escaped first; only this tiny syntax is turned into markup:
- *   ## Heading      ### Subheading      - list item      **bold**      blank line = new paragraph
+ *   ## Heading      ### Subheading      - list item      **bold**      [text](/page)      blank line = new paragraph
+ * Links must be a site path (/repairs), an http(s) URL, or mailto:/tel:; anything else stays as plain text.
  */
 
 const ENTITIES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 export const escapeHtml = (s: string) => String(s).replace(/[&<>"']/g, (c) => ENTITIES[c]);
 
-const inline = (s: string) => escapeHtml(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+const SAFE_HREF = /^(?:\/(?!\/)|https?:\/\/|mailto:|tel:)/i;
+
+// Runs on escaped text, so the link text and URL can no longer contain markup or break out of the attribute.
+const link = (whole: string, text: string, href: string) => {
+  if (!SAFE_HREF.test(href)) return whole;
+  const external = /^https?:/i.test(href);
+  return `<a href="${href}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${text}</a>`;
+};
+
+const inline = (s: string) => escapeHtml(s)
+  .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, link)
+  .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
 export function render(text: string | null | undefined): string {
   const out: string[] = [];

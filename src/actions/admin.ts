@@ -10,6 +10,7 @@ import { startUserSession, endSession, flash, revokeUserSessions } from '@/lib/s
 import { rateLimit } from '@/lib/ratelimit';
 import { removeOrder } from '@/lib/orders';
 import { saveImage, removeUpload, filesFrom, ImageError } from '@/lib/images';
+import { recordSeoScores } from '@/lib/blog';
 import { str, int, bool, isEmail, isDate, oneOf, checker, fields } from '@/lib/validate';
 import { toPence, slugify, safeRedirectPath } from '@/lib/helpers';
 import type { BlogPost, FormState, Order, ProductImage, Category } from '@/lib/types';
@@ -324,6 +325,9 @@ export async function saveBlogPost(_prev: FormState, formData: FormData): Promis
   const form = fields(formData, {
     title: 160, title_pt: 160, excerpt: 300, excerpt_pt: 300, category: 40, category_pt: 40,
     body: 50000, body_pt: 50000, cta_href: 300, cta_label: 60, cta_label_pt: 60,
+    focus_keyword: 80, focus_keyword_pt: 80, seo_title: 120, seo_title_pt: 120,
+    seo_description: 320, seo_description_pt: 320, image_alt: 160, image_alt_pt: 160,
+    related_keywords: 300, related_keywords_pt: 300,
   });
   const slug = slugify(str(formData.get('slug'), 100) || form.title);
   const published = str(formData.get('published'), 10);
@@ -351,18 +355,24 @@ export async function saveBlogPost(_prev: FormState, formData: FormData): Promis
     }
   }
   const values = [slug, published, saved?.path ?? existing!.image, saved?.thumb ?? existing!.thumb, form.category, form.category_pt, form.title, form.title_pt,
-    form.excerpt, form.excerpt_pt, form.body, form.body_pt, form.cta_href, form.cta_label, form.cta_label_pt, bool(formData.get('is_active'))] as const;
+    form.excerpt, form.excerpt_pt, form.body, form.body_pt, form.cta_href, form.cta_label, form.cta_label_pt,
+    form.focus_keyword, form.focus_keyword_pt, form.seo_title, form.seo_title_pt, form.seo_description, form.seo_description_pt,
+    form.image_alt, form.image_alt_pt, form.related_keywords, form.related_keywords_pt, bool(formData.get('is_active'))] as const;
 
   let postId = id;
   if (existing) {
     run(`UPDATE blog_posts SET slug = ?, published = ?, image = ?, thumb = ?, category = ?, category_pt = ?, title = ?, title_pt = ?,
-           excerpt = ?, excerpt_pt = ?, body = ?, body_pt = ?, cta_href = ?, cta_label = ?, cta_label_pt = ?, is_active = ?,
+           excerpt = ?, excerpt_pt = ?, body = ?, body_pt = ?, cta_href = ?, cta_label = ?, cta_label_pt = ?,
+           focus_keyword = ?, focus_keyword_pt = ?, seo_title = ?, seo_title_pt = ?, seo_description = ?, seo_description_pt = ?,
+           image_alt = ?, image_alt_pt = ?, related_keywords = ?, related_keywords_pt = ?, is_active = ?,
            updated_at = datetime('now') WHERE id = ?`, ...values, id);
     if (saved) { removeUpload(existing.image); removeUpload(existing.thumb); }
   } else {
-    postId = run(`INSERT INTO blog_posts (slug, published, image, thumb, category, category_pt, title, title_pt, excerpt, excerpt_pt, body, body_pt, cta_href, cta_label, cta_label_pt, is_active)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, ...values).lastInsertRowid;
+    postId = run(`INSERT INTO blog_posts (slug, published, image, thumb, category, category_pt, title, title_pt, excerpt, excerpt_pt, body, body_pt, cta_href, cta_label, cta_label_pt,
+                  focus_keyword, focus_keyword_pt, seo_title, seo_title_pt, seo_description, seo_description_pt, image_alt, image_alt_pt, related_keywords, related_keywords_pt, is_active)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, ...values).lastInsertRowid;
   }
+  recordSeoScores(postId);
   await flash('success', existing ? 'Article updated.' : 'Article created.');
   redirect(`/admin/blog/${postId}`);
 }

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
 import { BlogForm } from '@/components/admin/blog-form';
 import { requireAdmin } from '@/lib/auth';
+import { seoSetup } from '@/lib/blog';
 import { get } from '@/lib/db';
 import { int } from '@/lib/validate';
 import type { BlogPost } from '@/lib/types';
@@ -23,7 +24,7 @@ export default async function EditBlogPostPage({ params }: { params: Promise<{ i
         actions={post.is_active ? <Button asChild variant="white"><a href={`/blog/${post.slug}`} target="_blank" rel="noopener"><Eye />View on website</a></Button> : undefined}
       />
       {/* key resets the form's default values after each save */}
-      <BlogForm key={post.updated_at} post={post} />
+      <BlogForm key={post.updated_at} post={post} seo={seoSetup(post.id)} />
     </>
   );
 }

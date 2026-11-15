@@ -11,6 +11,7 @@ export function FormattingHelp() {
           <dt><code>### Smaller</code></dt><dd>Sub-heading</dd>
           <dt><code>- item</code></dt><dd>Bullet list</dd>
           <dt><code>**bold**</code></dt><dd><strong>bold</strong></dd>
+          <dt><code>[text](/repairs)</code></dt><dd>Link to a page or https:// site</dd>
           <dt>Blank line</dt><dd>New paragraph</dd>
         </dl>
         <p className="text-muted-foreground">HTML is not allowed and is shown as plain text. This keeps the site safe.</p>
