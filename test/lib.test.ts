@@ -87,6 +87,19 @@ test('admin page content cannot inject HTML', () => {
   assert.match(html, /<strong>bold<\/strong>/);
 });
 
+test('rich text syntax renders safely', () => {
+  const html = render('#### Small\n\nA ***both*** *it* ++under++ ~~gone~~ [**go**](/repairs) [x](javascript:alert(1))\n\n1. one\n2. two\n- bullet\n\n> quoted <b>\n\n---');
+  assert.match(html, /<h4>Small<\/h4>/);
+  assert.match(html, /<strong><em>both<\/em><\/strong> <em>it<\/em> <u>under<\/u> <s>gone<\/s>/);
+  assert.match(html, /<a href="\/repairs"><strong>go<\/strong><\/a>/);
+  assert.ok(!html.includes('href="javascript'));
+  assert.match(html, /<ol><li>one<\/li><li>two<\/li><\/ol>\n<ul><li>bullet<\/li><\/ul>/);
+  assert.match(html, /<blockquote><p>quoted &lt;b&gt;<\/p><\/blockquote>/);
+  assert.match(html, /<hr>/);
+  assert.equal(render('2 * 3 * 4'), '<p>2 * 3 * 4</p>');
+  assert.match(render('[a](https://e.com/~~x~~_*y*)'), /href="https:\/\/e.com\/~~x~~_\*y\*"/);
+});
+
 test('redirects, money and input helpers', () => {
   assert.equal(safeRedirectPath('//evil.example'), '/');
   assert.equal(safeRedirectPath('https://evil.example'), '/');

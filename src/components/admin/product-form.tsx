@@ -7,6 +7,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import { ActionForm, ConfirmButton, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
+import { RichTextEditor } from '@/components/admin/rich-text-editor';
 import { SeoFieldsCard, SeoProvider, SeoScoreCard } from '@/components/admin/seo-panel';
 import { saveProduct, deleteProduct } from '@/actions/admin';
 import { fromPence } from '@/lib/format';
@@ -38,8 +39,8 @@ export function ProductForm({ product, images, cats, seo }: { product?: Product;
               <Field label="Short description" htmlFor="short_desc" hint="Shown in search results and as the page's Google description.">
                 <Input id="short_desc" name="short_desc" defaultValue={p?.short_desc} maxLength={300} />
               </Field>
-              <Field label="Full description" htmlFor="description" hint="Leave a blank line between paragraphs.">
-                <Textarea id="description" name="description" defaultValue={p?.description} rows={7} maxLength={10000} />
+              <Field label="Full description" htmlFor="description" hint="Shown in the Description tab of the product page.">
+                <RichTextEditor id="description" name="description" defaultValue={p?.description} rows={9} maxLength={10000} placeholder="Describe the product…" />
               </Field>
             </CardContent>
           </Card>
@@ -68,7 +69,7 @@ export function ProductForm({ product, images, cats, seo }: { product?: Product;
               <p className="text-sm text-muted-foreground">Shown to visitors browsing in Portuguese. Anything left blank falls back to the English text.</p>
               <Field label="Product name" htmlFor="name_pt"><Input id="name_pt" name="name_pt" defaultValue={p?.name_pt} maxLength={150} /></Field>
               <Field label="Short description" htmlFor="short_desc_pt"><Input id="short_desc_pt" name="short_desc_pt" defaultValue={p?.short_desc_pt} maxLength={300} /></Field>
-              <Field label="Full description" htmlFor="description_pt"><Textarea id="description_pt" name="description_pt" defaultValue={p?.description_pt} rows={6} maxLength={10000} /></Field>
+              <Field label="Full description" htmlFor="description_pt"><RichTextEditor id="description_pt" name="description_pt" defaultValue={p?.description_pt} rows={8} maxLength={10000} placeholder="Descreva o produto…" /></Field>
               <Field label="Key features" htmlFor="features_pt" hint="One per line."><Textarea id="features_pt" name="features_pt" defaultValue={p?.features_pt} rows={5} maxLength={3000} /></Field>
               <Field label="Specifications" htmlFor="specs_pt" hint='One per line as "Name: Value".'><Textarea id="specs_pt" name="specs_pt" defaultValue={p?.specs_pt} rows={6} maxLength={5000} /></Field>
             </CardContent>

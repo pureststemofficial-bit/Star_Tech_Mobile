@@ -18,6 +18,7 @@ import { currentUser } from '@/lib/auth';
 import { toggleWishlist } from '@/actions/shop';
 import { lines, parseColours, parseOptions, parseSpecs } from '@/lib/format';
 import { str } from '@/lib/validate';
+import { render } from '@/lib/markdown';
 import { getI18n } from '@/lib/i18n/server';
 import { pick } from '@/lib/i18n/config';
 import type { Product, Review } from '@/lib/types';
@@ -169,7 +170,7 @@ export default async function ProductPage({ params }: { params: Params }) {
           <TabsTrigger value="reviews">{t('product.tabReviews', { n: reviews.length })}</TabsTrigger>
         </TabsList>
         <TabsContent value="description" className="max-w-3xl py-7">
-          {pick(product, 'description', locale).split(/\n\s*\n/).map((p, i) => <p key={i} className="mb-4 text-[17px] leading-relaxed text-foreground/85">{p}</p>)}
+          <div className="prose-content text-[17px]" dangerouslySetInnerHTML={{ __html: render(pick(product, 'description', locale)) }} />
         </TabsContent>
         <TabsContent value="specs" className="max-w-3xl py-7">
           {specs.length ? (

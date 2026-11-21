@@ -161,6 +161,11 @@ export function SeoProvider({ kind, item, setup, image: initialImage, imageCount
   const insert = useCallback((text: string) => {
     const body = form()?.elements.namedItem(lang === 'en' ? cfg.body : `${cfg.body}_pt`) as HTMLTextAreaElement | null;
     if (!body) return;
+    // The rich-text editor inserts at its own cursor; it cancels this event when it handles it.
+    if (!body.dispatchEvent(new CustomEvent('rte-insert', { detail: text, cancelable: true }))) {
+      toast.success('Link added to the article text.');
+      return;
+    }
     const start = body.selectionStart ?? body.value.length;
     const end = body.selectionEnd ?? start;
     const before = body.value.slice(0, start);

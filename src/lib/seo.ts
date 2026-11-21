@@ -3,8 +3,8 @@
  * functions with no server imports, so the same rules score live in the editor (client) and on
  * the admin dashboards (server).
  *
- * The body is the small markdown dialect from lib/markdown.ts: ## / ### headings, - lists,
- * **bold**, [text](url) links and blank lines between paragraphs.
+ * The body is the small markdown dialect from lib/markdown.ts: ## / ### / #### headings, - and 1. lists,
+ * > quotes, **bold** / *italic* / ++underline++ / ~~strike~~, [text](url) links and blank lines between paragraphs.
  */
 
 export type SeoLang = 'en' | 'pt';
@@ -187,7 +187,7 @@ export function parseBody(body: string): ParsedBody {
   let lists = 0;
   let para: string[] = [];
   let inList = false;
-  const plain = (line: string) => line.replace(LINK, (_m, text: string, url: string) => { links.push(url); return text; }).replace(/\*\*/g, '');
+  const plain = (line: string) => line.replace(LINK, (_m, text: string, url: string) => { links.push(url); return text; }).replace(/\*\*|\+\+|~~/g, '').replace(/(^|[^*\w])\*(?=[^\s*])(.+?)\*(?!\*)/g, '$1$2');
   const flush = () => {
     if (para.length) {
       const p = para.join(' ');
@@ -201,11 +201,13 @@ export function parseBody(body: string): ParsedBody {
     const line = raw.trim();
     if (!line) { flush(); inList = false; continue; }
     let m: RegExpMatchArray | null;
-    if ((m = line.match(/^#{2,3}\s+(.*)$/))) {
+    if (/^-{3,}$/.test(line)) {
+      flush(); inList = false;
+    } else if ((m = line.match(/^#{2,4}\s+(.*)$/))) {
       flush(); inList = false;
       headings.push(plain(m[1]));
       sectionWords.push(0);
-    } else if ((m = line.match(/^[-*]\s+(.*)$/))) {
+    } else if ((m = line.match(/^(?:[-*]|\d{1,3}[.)])\s+(.*)$/))) {
       flush();
       if (!inList) lists++;
       inList = true;
@@ -213,7 +215,7 @@ export function parseBody(body: string): ParsedBody {
       flush();
     } else {
       inList = false;
-      para.push(plain(line));
+      para.push(plain(line.replace(/^>\s?/, '')));
     }
   }
   flush();

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ActionForm, ConfirmButton, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
 import { FormattingHelp } from '@/components/admin/formatting-help';
+import { RichTextEditor } from '@/components/admin/rich-text-editor';
 import { SeoFieldsCard, SeoProvider, SeoScoreCard } from '@/components/admin/seo-panel';
 import { saveBlogPost, deleteBlogPost } from '@/actions/admin';
 import type { BlogPost } from '@/lib/types';
@@ -33,7 +34,7 @@ export function BlogForm({ post, seo }: { post?: BlogPost; seo: SeoSetup }) {
               <Field label="Summary" htmlFor="excerpt" hint="One or two sentences. Shown on the blog page and as the Google description.">
                 <Textarea id="excerpt" name="excerpt" defaultValue={p?.excerpt} required rows={2} maxLength={300} />
               </Field>
-              <Field label="Article text" htmlFor="body"><Textarea id="body" name="body" defaultValue={p?.body} required rows={20} maxLength={50000} className="font-mono text-sm" /></Field>
+              <Field label="Article text" htmlFor="body"><RichTextEditor id="body" name="body" defaultValue={p?.body} rows={18} maxLength={50000} placeholder="Start writing your article…" /></Field>
             </CardContent>
           </Card>
           <Card>
@@ -43,7 +44,7 @@ export function BlogForm({ post, seo }: { post?: BlogPost; seo: SeoSetup }) {
               <Field label="Title" htmlFor="title_pt"><Input id="title_pt" name="title_pt" defaultValue={p?.title_pt} maxLength={160} /></Field>
               <Field label="Category" htmlFor="category_pt"><Input id="category_pt" name="category_pt" defaultValue={p?.category_pt} maxLength={40} /></Field>
               <Field label="Summary" htmlFor="excerpt_pt"><Textarea id="excerpt_pt" name="excerpt_pt" defaultValue={p?.excerpt_pt} rows={2} maxLength={300} /></Field>
-              <Field label="Article text" htmlFor="body_pt"><Textarea id="body_pt" name="body_pt" defaultValue={p?.body_pt} rows={20} maxLength={50000} className="font-mono text-sm" /></Field>
+              <Field label="Article text" htmlFor="body_pt"><RichTextEditor id="body_pt" name="body_pt" defaultValue={p?.body_pt} rows={18} maxLength={50000} placeholder="Escreva o artigo em português…" /></Field>
             </CardContent>
           </Card>
           <SeoFieldsCard item={p} />

@@ -127,6 +127,13 @@
   /* Admin-edited page content (rendered by the safe formatter in lib/markdown.ts). */
   .prose-content h2 { @apply mt-8 mb-2 text-lg font-semibold; }
   .prose-content h3 { @apply mt-5 mb-2 font-semibold; }
+  .prose-content h4 { @apply mt-4 mb-1.5 text-[0.95em] font-semibold; }
+  .prose-content > :first-child { @apply mt-0; }
+  .prose-content ol { @apply mb-4 list-decimal space-y-1.5 pl-5 text-foreground/85; }
+  .prose-content blockquote { @apply mb-4 border-l-4 border-primary/40 bg-muted/40 py-2 pr-3 pl-4 italic; }
+  .prose-content blockquote p { @apply mb-0; }
+  .prose-content hr { @apply my-8 border-border; }
+  .prose-content u { @apply underline-offset-2; }
   .prose-content p { @apply mb-4 leading-[1.75] text-foreground/85; }
   .prose-content ul { @apply mb-4 list-disc space-y-1.5 pl-5 text-foreground/85; }
   .prose-content a { @apply font-medium text-primary underline underline-offset-2 hover:no-underline; }
