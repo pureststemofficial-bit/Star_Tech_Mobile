@@ -3,7 +3,7 @@
  * functions with no server imports, so the same rules score live in the editor (client) and on
  * the admin dashboards (server).
  *
- * The body is the small markdown dialect from lib/markdown.ts: ## / ### / #### headings, - and 1. lists,
+ * The body is the small markdown dialect from lib/markdown.ts: # / ## / ### / #### headings, - and 1. lists,
  * > quotes, **bold** / *italic* / ++underline++ / ~~strike~~, [text](url) links and blank lines between paragraphs.
  */
 
@@ -203,7 +203,7 @@ export function parseBody(body: string): ParsedBody {
     let m: RegExpMatchArray | null;
     if (/^-{3,}$/.test(line)) {
       flush(); inList = false;
-    } else if ((m = line.match(/^#{2,4}\s+(.*)$/))) {
+    } else if ((m = line.match(/^#{1,4}\s+(.*)$/))) {
       flush(); inList = false;
       headings.push(plain(m[1]));
       sectionWords.push(0);

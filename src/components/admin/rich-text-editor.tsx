@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Bold, Code2, Eraser, Heading2, Heading3, Heading4, Italic, Link2, List, ListOrdered, Minus, Pilcrow,
+  Bold, Code2, Eraser, Heading1, Heading2, Heading3, Heading4, Italic, Link2, List, ListOrdered, Minus, Pilcrow,
   Quote, Redo2, Strikethrough, Underline, Undo2, Unlink,
 } from 'lucide-react';
 import { render, renderInline, SAFE_HREF } from '@/lib/markdown';
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
  * Pasted content is converted through the same syntax, so no outside HTML or styling can get in.
  */
 
-type Block = 'p' | 'h2' | 'h3' | 'h4' | 'blockquote';
+type Block = 'p' | 'h1' | 'h2' | 'h3' | 'h4' | 'blockquote';
 type Mark = 'bold' | 'italic' | 'underline' | 'strikeThrough' | 'insertUnorderedList' | 'insertOrderedList';
 
 /* ---------- HTML -> text syntax ---------- */
@@ -86,7 +86,7 @@ function blocksMd(parent: Node, out: string[]) {
     const tag = el.tagName;
     if (tag === 'HR') { out.push('---'); continue; }
     if (/^H[1-6]$/.test(tag)) {
-      const level = Math.min(Math.max(Number(tag[1]), 2), 4); // H1 belongs to the page title
+      const level = Math.min(Number(tag[1]), 4); // H5 and H6 become H4
       const text = lines(inlineMd(el)).join(' ').replace(/^\*\*([\s\S]*)\*\*$/, '$1');
       if (text) out.push(`${'#'.repeat(level)} ${text}`);
       continue;
@@ -100,7 +100,7 @@ function blocksMd(parent: Node, out: string[]) {
     if (tag === 'BLOCKQUOTE') {
       const inner: string[] = [];
       blocksMd(el, inner);
-      const text = inner.join('\n').split('\n').map((l) => l.replace(/^(#{2,4}|[-*]|\d{1,3}[.)]|>)\s+/, '')).filter(Boolean);
+      const text = inner.join('\n').split('\n').map((l) => l.replace(/^(#{1,4}|[-*]|\d{1,3}[.)]|>)\s+/, '')).filter(Boolean);
       if (text.length) out.push(text.map((l) => `> ${l}`).join('\n'));
       continue;
     }
@@ -137,6 +137,7 @@ export function htmlToMarkdown(root: Node): string {
 
 const BLOCK_LABELS: { value: Block; label: string }[] = [
   { value: 'p', label: 'Paragraph' },
+  { value: 'h1', label: 'Heading 1' },
   { value: 'h2', label: 'Heading 2' },
   { value: 'h3', label: 'Heading 3' },
   { value: 'h4', label: 'Heading 4' },
@@ -207,8 +208,7 @@ export function RichTextEditor({
       const t = (n as Element).tagName?.toLowerCase();
       if (t === 'a') link = true;
       if (t === 'u') u = true;
-      if (t === 'h2' || t === 'h3' || t === 'h4' || t === 'blockquote') { b = t; break; }
-      if (t === 'h1') { b = 'h2'; break; }
+      if (t === 'h1' || t === 'h2' || t === 'h3' || t === 'h4' || t === 'blockquote') { b = t; break; }
       if (t === 'h5' || t === 'h6') { b = 'h4'; break; }
     }
     setBlock(b);
@@ -285,7 +285,7 @@ export function RichTextEditor({
   const onKeyDown = (e: React.KeyboardEvent) => {
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); openLink(); }
-    if (mod && e.altKey && ['0', '2', '3', '4'].includes(e.key)) {
+    if (mod && e.altKey && ['0', '1', '2', '3', '4'].includes(e.key)) {
       e.preventDefault();
       setBlockType(e.key === '0' ? 'p' : (`h${e.key}` as Block));
     }
@@ -351,6 +351,7 @@ export function RichTextEditor({
         </select>
         {sep}
         {btn('Paragraph', <Pilcrow />, () => setBlockType('p'), visual && block === 'p', 'Ctrl+Alt+0')}
+        {btn('Heading 1', <Heading1 />, () => setBlockType('h1'), block === 'h1', 'Ctrl+Alt+1')}
         {btn('Heading 2', <Heading2 />, () => setBlockType('h2'), block === 'h2', 'Ctrl+Alt+2')}
         {btn('Heading 3', <Heading3 />, () => setBlockType('h3'), block === 'h3', 'Ctrl+Alt+3')}
         {btn('Heading 4', <Heading4 />, () => setBlockType('h4'), block === 'h4', 'Ctrl+Alt+4')}
@@ -423,7 +424,7 @@ export function RichTextEditor({
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t bg-muted/20 px-3 py-1.5 text-[11px] text-muted-foreground">
-        <span>{visual ? 'Paste from Word or Google Docs keeps headings, lists, bold and links.' : '## heading · **bold** · *italic* · ++underline++ · ~~strike~~ · - list · 1. list · > quote · ---'}</span>
+        <span>{visual ? 'Paste from Word or Google Docs keeps headings, lists, bold and links.' : '# / ## heading · **bold** · *italic* · ++underline++ · ~~strike~~ · - list · 1. list · > quote · ---'}</span>
         {maxLength ? <span className={cn('tabular-nums', length > maxLength && 'text-destructive')}>{length.toLocaleString()} / {maxLength.toLocaleString()}</span> : null}
       </div>
     </div>

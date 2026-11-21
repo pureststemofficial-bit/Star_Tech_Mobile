@@ -97,6 +97,7 @@ test('rich text syntax renders safely', () => {
   assert.match(html, /<blockquote><p>quoted &lt;b&gt;<\/p><\/blockquote>/);
   assert.match(html, /<hr>/);
   assert.equal(render('2 * 3 * 4'), '<p>2 * 3 * 4</p>');
+  assert.equal(render('# Main'), '<h1>Main</h1>');
   assert.match(render('[a](https://e.com/~~x~~_*y*)'), /href="https:\/\/e.com\/~~x~~_\*y\*"/);
 });
 

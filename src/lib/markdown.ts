@@ -1,7 +1,7 @@
 /*
  * Minimal, XSS-safe text formatter for admin-edited pages, blog articles and product descriptions.
  * Everything is HTML-escaped first; only this small syntax is turned into markup:
- *   ## Heading   ### Subheading   #### Small heading
+ *   # Main heading   ## Heading   ### Subheading   #### Small heading
  *   - bullet     1. numbered      > quote          --- divider line      blank line = new paragraph
  *   **bold**     *italic*         ++underline++    ~~strikethrough~~     [text](/page)
  * Links must be a site path (/repairs), an http(s) URL, or mailto:/tel:; anything else stays as plain text.
@@ -56,7 +56,7 @@ export function render(text: string | null | undefined): string {
     const line = raw.trim();
     if (!line) { flush(); continue; }
     let m: RegExpMatchArray | null;
-    if ((m = line.match(/^(#{2,4})\s+(.*)$/))) {
+    if ((m = line.match(/^(#{1,4})\s+(.*)$/))) {
       flush();
       const tag = `h${m[1].length}`;
       out.push(`<${tag}>${renderInline(m[2])}</${tag}>`);
