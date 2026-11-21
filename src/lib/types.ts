@@ -20,6 +20,9 @@ export interface Category {
   nav_label: string;
   name_pt: string;
   nav_label_pt: string;
+  /** Intro text for the category's shop page, in the lib/markdown.ts syntax. */
+  description: string;
+  description_pt: string;
   product_count: number;
 }
 

@@ -194,12 +194,13 @@ export async function saveCategory(_prev: FormState, formData: FormData): Promis
   }
   const values = [name, slug, str(formData.get('nav_label'), 40), int(formData.get('sort_order'), { min: 0, max: 9999 }),
     bool(formData.get('show_in_nav')), bool(formData.get('show_on_home')), image,
-    str(formData.get('name_pt'), 80), str(formData.get('nav_label_pt'), 40)] as const;
+    str(formData.get('name_pt'), 80), str(formData.get('nav_label_pt'), 40),
+    str(formData.get('description'), 10000), str(formData.get('description_pt'), 10000)] as const;
   if (existing) {
-    run('UPDATE categories SET name = ?, slug = ?, nav_label = ?, sort_order = ?, show_in_nav = ?, show_on_home = ?, image = ?, name_pt = ?, nav_label_pt = ? WHERE id = ?',
+    run('UPDATE categories SET name = ?, slug = ?, nav_label = ?, sort_order = ?, show_in_nav = ?, show_on_home = ?, image = ?, name_pt = ?, nav_label_pt = ?, description = ?, description_pt = ? WHERE id = ?',
       ...values, existing.id);
   } else {
-    run('INSERT INTO categories (name, slug, nav_label, sort_order, show_in_nav, show_on_home, image, name_pt, nav_label_pt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', ...values);
+    run('INSERT INTO categories (name, slug, nav_label, sort_order, show_in_nav, show_on_home, image, name_pt, nav_label_pt, description, description_pt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', ...values);
   }
   store.invalidate();
   await flash('success', existing ? 'Category updated.' : 'Category added.');

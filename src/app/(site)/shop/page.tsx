@@ -11,6 +11,8 @@ import { search, brandCounts, PRICE_RANGES, SORT_KEYS } from '@/lib/catalog';
 import { str, int, oneOf } from '@/lib/validate';
 import { getI18n } from '@/lib/i18n/server';
 import { pick } from '@/lib/i18n/config';
+import { render } from '@/lib/markdown';
+import { parseBody } from '@/lib/seo';
 
 /* Banner photo for each category page (made from public/hero_section_img). Other pages use the general shop photo. */
 const CATEGORY_BANNERS: Record<string, string> = {
@@ -32,7 +34,11 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
   const { t, locale } = await getI18n();
   const q = str(sp.q, 100);
   const cat = categories().find((c) => asArray(sp.category).length === 1 && c.slug === asArray(sp.category)[0]);
-  return { title: q ? t('shop.search', { q }) : cat ? pick(cat, 'name', locale) : t('shop.all') };
+  if (q || !cat) return { title: q ? t('shop.search', { q }) : t('shop.all') };
+  // The category description's opening paragraph doubles as the Google description.
+  const intro = parseBody(pick(cat, 'description', locale)).paragraphs[0] ?? '';
+  const description = intro.length > 160 ? `${intro.slice(0, 157).replace(/\s+\S*$/, '')}…` : intro;
+  return { title: pick(cat, 'name', locale), ...(description ? { description } : {}) };
 }
 
 export default async function ShopPage({ searchParams }: { searchParams: SP }) {
@@ -82,6 +88,9 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
           brands={brandCounts()}
         />
         <div>
+          {activeCat && pick(activeCat, 'description', locale).trim() ? (
+            <div className="prose-content mb-8 max-w-3xl text-[16px]" dangerouslySetInnerHTML={{ __html: render(pick(activeCat, 'description', locale)) }} />
+          ) : null}
           <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
             <span className="text-sm text-muted-foreground" aria-live="polite">{t('shop.showing', { first, last, total: result.total })}</span>
             <SortSelect sort={filters.sort} hidden={hidden} />

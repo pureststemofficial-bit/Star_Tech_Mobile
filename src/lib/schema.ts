@@ -1,7 +1,7 @@
 /* Columns added after the first release. Each is added once if the database doesn't have it yet. */
 export const ADDED_COLUMNS: [table: string, column: string, definition: string][] = [
   ...['name_pt', 'short_desc_pt', 'description_pt', 'features_pt', 'specs_pt'].map((c) => ['products', c, "TEXT NOT NULL DEFAULT ''"] as [string, string, string]),
-  ...['name_pt', 'nav_label_pt'].map((c) => ['categories', c, "TEXT NOT NULL DEFAULT ''"] as [string, string, string]),
+  ...['name_pt', 'nav_label_pt', 'description', 'description_pt'].map((c) => ['categories', c, "TEXT NOT NULL DEFAULT ''"] as [string, string, string]),
   ...['title_pt', 'subtitle_pt', 'body_pt'].map((c) => ['pages', c, "TEXT NOT NULL DEFAULT ''"] as [string, string, string]),
   ['orders', 'stripe_session_id', "TEXT NOT NULL DEFAULT ''"],
   ['products', 'is_popular', 'INTEGER NOT NULL DEFAULT 0'],

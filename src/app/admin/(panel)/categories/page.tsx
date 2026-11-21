@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ActionForm, ConfirmButton, SubmitButton } from '@/components/forms/action-form';
 import { Field } from '@/components/forms/field';
 import { PageHeader } from '@/components/admin/page-header';
+import { RichTextEditor } from '@/components/admin/rich-text-editor';
 import { saveCategory, deleteCategory } from '@/actions/admin';
 import { requireAdmin } from '@/lib/auth';
 import { categories } from '@/lib/store';
@@ -22,12 +23,12 @@ export default async function CategoriesAdmin({ searchParams }: { searchParams: 
   const cats = categories();
   const editId = int((await searchParams).edit, { fallback: 0 });
   const edit = cats.find((c) => c.id === editId);
-  const c = edit ?? { id: 0, name: '', name_pt: '', slug: '', nav_label: '', nav_label_pt: '', sort_order: cats.length, show_in_nav: 0, show_on_home: 1, image: '' };
+  const c = edit ?? { id: 0, name: '', name_pt: '', slug: '', nav_label: '', nav_label_pt: '', sort_order: cats.length, show_in_nav: 0, show_on_home: 1, image: '', description: '', description_pt: '' };
 
   return (
     <>
       <PageHeader title="Categories" description="Control the shop categories, the main menu and the home page tiles." />
-      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[1fr_360px]">
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[1fr_440px]">
         <Card className="py-2">
           <CardContent className="px-2">
             <Table>
@@ -66,6 +67,12 @@ export default async function CategoriesAdmin({ searchParams }: { searchParams: 
               <Field label="Short label" htmlFor="nav_label" hint="Used in the menu and on the home tile."><Input id="nav_label" name="nav_label" defaultValue={c.nav_label} maxLength={40} /></Field>
               <Field label="Name (Portuguese)" htmlFor="cname_pt"><Input id="cname_pt" name="name_pt" defaultValue={c.name_pt} maxLength={80} /></Field>
               <Field label="Short label (Portuguese)" htmlFor="nav_label_pt"><Input id="nav_label_pt" name="nav_label_pt" defaultValue={c.nav_label_pt} maxLength={40} /></Field>
+              <Field label="Description" htmlFor="cdescription" optional hint="Shown at the top of this category's shop page. The opening text is also used as the Google description.">
+                <RichTextEditor id="cdescription" name="description" defaultValue={c.description} rows={6} maxLength={10000} placeholder="Introduce this category…" />
+              </Field>
+              <Field label="Description (Portuguese)" htmlFor="cdescription_pt" optional hint="Left blank, the English text is shown.">
+                <RichTextEditor id="cdescription_pt" name="description_pt" defaultValue={c.description_pt} rows={6} maxLength={10000} placeholder="Apresente esta categoria…" />
+              </Field>
               <Field label="URL slug" htmlFor="cslug" hint="Leave blank to generate."><Input id="cslug" name="slug" defaultValue={c.slug} maxLength={80} /></Field>
               <Field label="Sort order" htmlFor="sort_order"><Input id="sort_order" name="sort_order" type="number" min={0} defaultValue={c.sort_order} /></Field>
               <Label className="font-medium"><Checkbox name="show_in_nav" defaultChecked={!!c.show_in_nav} /> Show in main menu</Label>
